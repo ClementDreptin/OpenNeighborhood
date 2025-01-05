@@ -1,1 +1,5 @@
-<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" fill="#fff" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <path d="m43.414 16c-1.2608 0-2.2828-1.0233-2.2828-2.2858v-13.714h-27.393c-3.7822 0-6.8484 3.07-6.8484 6.8571v50.286c0 3.7871 3.0661 6.8571 6.8484 6.8571h36.525c3.7822 0 6.8484-3.07 6.8484-6.8571v-41.143z"/>
+  <polygon points="55.774 11.428 45.696 1.3394 45.696 11.428"/>
+</svg>
