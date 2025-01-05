@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build && cp -r .next/static .next/standalone/.next/static",
+    "start": "node .next/standalone/server.js",
     "lint": "next lint"
   },
   "dependencies": {
