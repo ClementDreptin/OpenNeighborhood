@@ -15,10 +15,18 @@ import {
 } from "@/components/ui/dialog";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
+import { createConsoleAction } from "@/lib/actions";
+
+const IP_ADDRESS_HELPER_TEXT_ID = "ip-address-helper-text";
 
 export default function AddConsoleButton() {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [ipAddressBytes, setIpAddressBytes] = React.useState([192, 168, 1, 10]);
+  const [formState, formAction, isPending] = React.useActionState(
+    createConsoleAction,
+    null,
+  );
+  const isError = formState?.success === false;
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -34,12 +42,11 @@ export default function AddConsoleButton() {
     setIpAddressBytes(newBytes);
   };
 
-  const handleAdd: React.MouseEventHandler = (event) => {
-    event.preventDefault();
-
-    console.log("console added");
-    setModalOpen(false);
-  };
+  React.useEffect(() => {
+    if (formState?.success === true) {
+      setModalOpen(false);
+    }
+  }, [formState]);
 
   return (
     <Dialog open={modalOpen} onOpenChange={setModalOpen}>
@@ -55,10 +62,10 @@ export default function AddConsoleButton() {
           </DialogDescription>
         </DialogHeader>
 
-        <form className="flex flex-col gap-4">
+        <form className="flex flex-col gap-4" action={formAction}>
           <div className="flex gap-2">
             {ipAddressBytes.map((byte, index) => {
-              const id = `ip-address-byte-${index.toString()}`;
+              const id = `ip-address-byte-${index}`;
 
               return (
                 <div key={index} className="w-full">
@@ -67,7 +74,12 @@ export default function AddConsoleButton() {
                   </label>
                   <Input
                     id={id}
+                    name={id}
                     required
+                    error={isError}
+                    aria-describedby={
+                      isError ? IP_ADDRESS_HELPER_TEXT_ID : undefined
+                    }
                     type="number"
                     min={0}
                     max={255}
@@ -81,11 +93,21 @@ export default function AddConsoleButton() {
             })}
           </div>
 
+          {isError ? (
+            <p
+              id={IP_ADDRESS_HELPER_TEXT_ID}
+              data-testid={IP_ADDRESS_HELPER_TEXT_ID}
+              className="text-destructive"
+            >
+              {formState.error?.message}
+            </p>
+          ) : null}
+
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="secondary">Cancel</Button>
             </DialogClose>
-            <Button type="submit" onClick={handleAdd}>
+            <Button type="submit" disabled={isPending}>
               Confirm
             </Button>
           </DialogFooter>
