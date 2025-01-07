@@ -11,11 +11,7 @@ const CONFIG_FILE_PATH = "consoles.json";
 
 export async function getConsoles() {
   try {
-    const fileContent = await fs.readFile(CONFIG_FILE_PATH, {
-      encoding: "utf-8",
-    });
-
-    return JSON.parse(fileContent) as Console[];
+    return await getConsolesFromFile();
   } catch (err) {
     if (isErrnoException(err) && err.code === "ENOENT") {
       return [];
@@ -34,11 +30,7 @@ export async function createConsole(ipAddress: string) {
 
   let consoles: Console[];
   try {
-    const fileContent = await fs.readFile(CONFIG_FILE_PATH, {
-      encoding: "utf-8",
-    });
-
-    consoles = JSON.parse(fileContent);
+    consoles = await getConsolesFromFile();
   } catch (err) {
     if (isErrnoException(err) && err.code === "ENOENT") {
       consoles = [];
@@ -47,13 +39,11 @@ export async function createConsole(ipAddress: string) {
     }
   }
 
-  const consoleName = await xbdm.getConsoleName(ipAddress);
+  const consoleName = await xbdm.sendCommand(ipAddress, "Ok", "dbgname");
 
   consoles.push({ name: consoleName, ipAddress });
 
-  await fs.writeFile(CONFIG_FILE_PATH, JSON.stringify(consoles), {
-    encoding: "utf-8",
-  });
+  await writeConsolesToFile(consoles);
 }
 
 export async function deleteConsole(ipAddress: string) {
@@ -61,10 +51,7 @@ export async function deleteConsole(ipAddress: string) {
     throw new Error("IP address is not valid.");
   }
 
-  const fileContent = await fs.readFile(CONFIG_FILE_PATH, {
-    encoding: "utf-8",
-  });
-  const consoles = JSON.parse(fileContent) as Console[];
+  const consoles = await getConsolesFromFile();
 
   const consoleIndex = consoles.findIndex(
     (console) => console.ipAddress === ipAddress,
@@ -75,6 +62,97 @@ export async function deleteConsole(ipAddress: string) {
 
   consoles.splice(consoleIndex, 1);
 
+  await writeConsolesToFile(consoles);
+}
+
+export interface Drive {
+  name: string;
+  freeBytesAvailable: number;
+  totalBytes: number;
+  totalFreeBytes: number;
+  totalUsedBytes: number;
+  friendlyName: string;
+}
+
+export async function getDrives(ipAddress: string) {
+  if (!IPV4_REGEX.test(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  const driveListResponse = await xbdm.sendCommand(
+    ipAddress,
+    "MultilineResponseFollows",
+    "drivelist",
+  );
+  const driveListResponseLines = driveListResponse.split(xbdm.LINE_DELIMITER);
+
+  const drives: Drive[] = [];
+  for (const line of driveListResponseLines) {
+    const driveName = xbdm.getStringProperty(line, "drivename");
+    const driveFreeSpaceResponse = await xbdm.sendCommand(
+      ipAddress,
+      "MultilineResponseFollows",
+      `drivefreespace name="${driveName}:\\"`,
+    );
+
+    const freeToCallerHi = xbdm.getIntegerProperty(
+      driveFreeSpaceResponse,
+      "freetocallerhi",
+    );
+    const freeToCallerLo = xbdm.getIntegerProperty(
+      driveFreeSpaceResponse,
+      "freetocallerlo",
+    );
+    const totalBytesHi = xbdm.getIntegerProperty(
+      driveFreeSpaceResponse,
+      "totalbyteshi",
+    );
+    const totalBytesLo = xbdm.getIntegerProperty(
+      driveFreeSpaceResponse,
+      "totalbyteslo",
+    );
+    const totalFreeBytesHi = xbdm.getIntegerProperty(
+      driveFreeSpaceResponse,
+      "totalfreebyteshi",
+    );
+    const totalFreeBytesLo = xbdm.getIntegerProperty(
+      driveFreeSpaceResponse,
+      "totalfreebyteslo",
+    );
+
+    const freeBytesAvailable = Number(
+      (BigInt(freeToCallerHi) << BigInt(32)) | BigInt(freeToCallerLo),
+    );
+    const totalBytes = Number(
+      (BigInt(totalBytesHi) << BigInt(32)) | BigInt(totalBytesLo),
+    );
+    const totalFreeBytes = Number(
+      (BigInt(totalFreeBytesHi) << BigInt(32)) | BigInt(totalFreeBytesLo),
+    );
+    const totalUsedBytes = totalBytes - freeBytesAvailable;
+
+    drives.push({
+      name: `${driveName}:`,
+      freeBytesAvailable,
+      friendlyName: xbdm.driveNameToDriveFriendlyName(driveName),
+      totalBytes,
+      totalFreeBytes,
+      totalUsedBytes,
+    });
+  }
+
+  return drives;
+}
+
+async function getConsolesFromFile() {
+  const fileContent = await fs.readFile(CONFIG_FILE_PATH, {
+    encoding: "utf-8",
+  });
+
+  return JSON.parse(fileContent) as Console[];
+}
+
+async function writeConsolesToFile(consoles: Console[]) {
   await fs.writeFile(CONFIG_FILE_PATH, JSON.stringify(consoles), {
     encoding: "utf-8",
   });

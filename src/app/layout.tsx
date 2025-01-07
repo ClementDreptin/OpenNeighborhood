@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import { Card } from "@/components/ui/card";
 import Providers from "@/providers";
 import "./globals.css";
+import type { LayoutProps } from "@/types/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,10 +15,6 @@ export const metadata: Metadata = {
   title: "OpenNeighborhood",
   description: "Web-based clone of Xbox 360 Neighborhood.",
 };
-
-interface LayoutProps {
-  children: React.ReactNode;
-}
 
 export default function RootLayout({ children }: LayoutProps) {
   return (

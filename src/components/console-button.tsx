@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import consoleIcon from "@/../public/console.svg";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,12 +29,17 @@ interface ConsoleButtonProps {
 }
 
 export default function ConsoleButton({ console }: ConsoleButtonProps) {
+  const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [formState, formAction, isPending] = React.useActionState(
     deleteConsoleAction,
     null,
   );
   const isError = formState?.success === false;
+
+  const handleClick = () => {
+    router.push(`/${console.ipAddress}`);
+  };
 
   const formActionWrapper = () => {
     const formData = new FormData();
@@ -55,6 +61,7 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
             className="break-all"
             title={console.name}
             iconSrc={consoleIcon}
+            onClick={handleClick}
           >
             {console.name}
           </IconButton>
