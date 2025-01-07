@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import * as xbdm from "./xbdm";
 import "server-only";
 
 export interface Console {
@@ -46,7 +47,9 @@ export async function createConsole(ipAddress: string) {
     }
   }
 
-  consoles.push({ name: "XBOX", ipAddress });
+  const consoleName = await xbdm.getConsoleName(ipAddress);
+
+  consoles.push({ name: consoleName, ipAddress });
 
   await fs.writeFile(CONFIG_FILE_PATH, JSON.stringify(consoles), {
     encoding: "utf-8",
