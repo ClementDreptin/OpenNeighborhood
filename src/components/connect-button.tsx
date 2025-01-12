@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import addConsoleButtonIcon from "@/../public/add-console-button.svg";
+import { useRouter } from "next/navigation";
+import connectButtonIcon from "@/../public/connect-button.svg";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,18 +16,18 @@ import {
 } from "@/components/ui/dialog";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
-import { createConsoleAction } from "@/lib/actions";
+import { isValidIpv4 } from "@/lib/utils";
 
-const IP_ADDRESS_HELPER_TEXT_ID = "ip-address-helper-text";
+const DEFAULT_IP_ADDRESS_BYTES = [192, 168, 1, 10];
+const IP_ADDRESS_LOCALSTORAGE_KEY = "ipAddress";
 
-export default function AddConsoleButton() {
+export default function ConnectButton() {
+  const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [ipAddressBytes, setIpAddressBytes] = React.useState([192, 168, 1, 10]);
-  const [formState, formAction, isPending] = React.useActionState(
-    createConsoleAction,
-    null,
+  const [loading, setLoading] = React.useState(false);
+  const [ipAddressBytes, setIpAddressBytes] = React.useState(
+    getIpAddressBytesFromLocalStorage(),
   );
-  const isError = formState?.success === false;
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -42,27 +43,32 @@ export default function AddConsoleButton() {
     setIpAddressBytes(newBytes);
   };
 
-  React.useEffect(() => {
-    if (formState?.success === true) {
-      setModalOpen(false);
-    }
-  }, [formState]);
+  const handleSubmit: React.FormEventHandler = (event) => {
+    event.preventDefault();
+
+    const ipAddress = ipAddressBytes.join(".");
+
+    localStorage.setItem(IP_ADDRESS_LOCALSTORAGE_KEY, ipAddress);
+
+    setLoading(true);
+    router.push(`/${ipAddress}`);
+  };
 
   return (
     <Dialog open={modalOpen} onOpenChange={setModalOpen}>
       <DialogTrigger asChild>
-        <IconButton iconSrc={addConsoleButtonIcon}>Add Xbox 360</IconButton>
+        <IconButton iconSrc={connectButtonIcon}>Connect</IconButton>
       </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Xbox 360</DialogTitle>
+          <DialogTitle>Connect to Xbox 360</DialogTitle>
           <DialogDescription>
-            Enter the IP address of the Xbox 360 you want to add.
+            Enter the IP address of the Xbox 360 you want to connect to.
           </DialogDescription>
         </DialogHeader>
 
-        <form className="flex flex-col gap-4" action={formAction}>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="flex gap-2">
             {ipAddressBytes.map((byte, index) => {
               const id = `ip-address-byte-${index}`;
@@ -76,10 +82,6 @@ export default function AddConsoleButton() {
                     id={id}
                     name={id}
                     required
-                    error={isError}
-                    aria-describedby={
-                      isError ? IP_ADDRESS_HELPER_TEXT_ID : undefined
-                    }
                     type="number"
                     min={0}
                     max={255}
@@ -93,21 +95,11 @@ export default function AddConsoleButton() {
             })}
           </div>
 
-          {isError ? (
-            <p
-              id={IP_ADDRESS_HELPER_TEXT_ID}
-              data-testid={IP_ADDRESS_HELPER_TEXT_ID}
-              className="text-destructive"
-            >
-              {formState.error?.message}
-            </p>
-          ) : null}
-
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="secondary">Cancel</Button>
             </DialogClose>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={loading}>
               Confirm
             </Button>
           </DialogFooter>
@@ -115,4 +107,17 @@ export default function AddConsoleButton() {
       </DialogContent>
     </Dialog>
   );
+}
+
+function getIpAddressBytesFromLocalStorage() {
+  if (typeof window === "undefined") {
+    return DEFAULT_IP_ADDRESS_BYTES;
+  }
+
+  const ipAddress = localStorage.getItem(IP_ADDRESS_LOCALSTORAGE_KEY);
+  if (ipAddress == null || !isValidIpv4(ipAddress)) {
+    return DEFAULT_IP_ADDRESS_BYTES;
+  }
+
+  return ipAddress.split(".").map(Number);
 }

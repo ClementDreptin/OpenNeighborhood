@@ -24,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps) {
         <Providers>
           <div className="flex min-h-screen bg-background p-4">
             <Card className="flex-grow p-4">
-              <div className="flex flex-wrap gap-4">{children}</div>
+              <div className="h-full">{children}</div>
             </Card>
           </div>
 

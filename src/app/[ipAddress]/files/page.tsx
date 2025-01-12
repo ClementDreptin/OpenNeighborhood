@@ -18,5 +18,11 @@ export default async function FilesPage(props: PageProps) {
     return <ErrorPage error={err} />;
   }
 
-  return files.map((file) => <FileButton key={file.name} file={file} />);
+  return (
+    <div className="flex flex-wrap gap-4">
+      {files.map((file) => (
+        <FileButton key={file.name} file={file} />
+      ))}
+    </div>
+  );
 }

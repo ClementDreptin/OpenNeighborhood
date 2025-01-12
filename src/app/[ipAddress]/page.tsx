@@ -13,5 +13,11 @@ export default async function DrivesPage(props: PageProps) {
     return <ErrorPage error={err} />;
   }
 
-  return drives.map((drive) => <DriveButton key={drive.name} drive={drive} />);
+  return (
+    <div className="flex flex-wrap gap-4">
+      {drives.map((drive) => (
+        <DriveButton key={drive.name} drive={drive} />
+      ))}
+    </div>
+  );
 }

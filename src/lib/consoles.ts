@@ -1,69 +1,11 @@
-import fs from "node:fs/promises";
 import path from "node:path";
+import { isValidIpv4 } from "./utils";
 import * as xbdm from "./xbdm";
 import "server-only";
 
 export interface Console {
   name: string;
   ipAddress: string;
-}
-
-const CONFIG_FILE_PATH = "consoles.json";
-
-export async function getConsoles() {
-  try {
-    return await getConsolesFromFile();
-  } catch (err) {
-    if (isErrnoException(err) && err.code === "ENOENT") {
-      return [];
-    }
-
-    throw err;
-  }
-}
-
-const IPV4_REGEX = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/;
-
-export async function createConsole(ipAddress: string) {
-  if (!IPV4_REGEX.test(ipAddress)) {
-    throw new Error("IP address is not valid.");
-  }
-
-  let consoles: Console[];
-  try {
-    consoles = await getConsolesFromFile();
-  } catch (err) {
-    if (isErrnoException(err) && err.code === "ENOENT") {
-      consoles = [];
-    } else {
-      throw err;
-    }
-  }
-
-  const consoleName = await xbdm.sendCommand(ipAddress, "Ok", "dbgname");
-
-  consoles.push({ name: consoleName, ipAddress });
-
-  await writeConsolesToFile(consoles);
-}
-
-export async function deleteConsole(ipAddress: string) {
-  if (!IPV4_REGEX.test(ipAddress)) {
-    throw new Error("IP address is not valid.");
-  }
-
-  const consoles = await getConsolesFromFile();
-
-  const consoleIndex = consoles.findIndex(
-    (console) => console.ipAddress === ipAddress,
-  );
-  if (consoleIndex === -1) {
-    throw new Error(`Console with ip address ${ipAddress} not found.`);
-  }
-
-  consoles.splice(consoleIndex, 1);
-
-  await writeConsolesToFile(consoles);
 }
 
 export interface Drive {
@@ -76,7 +18,7 @@ export interface Drive {
 }
 
 export async function getDrives(ipAddress: string) {
-  if (!IPV4_REGEX.test(ipAddress)) {
+  if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
   }
 
@@ -155,7 +97,7 @@ export interface File {
 }
 
 export async function getFiles(ipAddress: string, dirPath: string) {
-  if (!IPV4_REGEX.test(ipAddress)) {
+  if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
   }
 
@@ -210,7 +152,7 @@ export async function getFiles(ipAddress: string, dirPath: string) {
 }
 
 export async function launchXex(ipAddress: string, filePath: string) {
-  if (!IPV4_REGEX.test(ipAddress)) {
+  if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
   }
 
@@ -221,22 +163,4 @@ export async function launchXex(ipAddress: string, filePath: string) {
     "Ok",
     `magicboot title=\"${filePath}\" directory=\"${parentPath}\"`,
   );
-}
-
-async function getConsolesFromFile() {
-  const fileContent = await fs.readFile(CONFIG_FILE_PATH, {
-    encoding: "utf-8",
-  });
-
-  return JSON.parse(fileContent) as Console[];
-}
-
-async function writeConsolesToFile(consoles: Console[]) {
-  await fs.writeFile(CONFIG_FILE_PATH, JSON.stringify(consoles), {
-    encoding: "utf-8",
-  });
-}
-
-function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
 }
