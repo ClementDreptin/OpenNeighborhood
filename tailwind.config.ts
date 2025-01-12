@@ -58,6 +58,9 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
     },
+    gridTemplateColumns: {
+      autofit: "repeat(auto-fit, minmax(20ch, 1fr))",
+    },
   },
   plugins: [tailwindAnimate],
 } satisfies Config;

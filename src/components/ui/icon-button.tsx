@@ -9,7 +9,7 @@ const IconButton = React.forwardRef<
 >(({ className, iconSrc, children, ...props }, ref) => (
   <Button
     variant="outline"
-    className={cn("h-20 w-64 justify-around gap-4 text-wrap", className)}
+    className={cn("h-full w-full justify-around gap-4 text-wrap", className)}
     ref={ref}
     {...props}
   >

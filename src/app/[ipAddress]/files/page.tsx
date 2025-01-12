@@ -19,7 +19,7 @@ export default async function FilesPage(props: PageProps) {
   }
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="grid-cols-autofit grid gap-4">
       {files.map((file) => (
         <FileButton key={file.name} file={file} />
       ))}
