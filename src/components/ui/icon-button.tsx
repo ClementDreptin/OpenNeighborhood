@@ -14,8 +14,13 @@ const IconButton = React.forwardRef<
     {...props}
   >
     <Image alt="" src={iconSrc} />
-    <div className="w-full self-start">
-      <div className="line-clamp-3 text-start">{children}</div>
+    <div className="flex-grow self-start">
+      <div
+        style={{ overflowWrap: "anywhere" }}
+        className="line-clamp-3 text-start"
+      >
+        {children}
+      </div>
     </div>
   </Button>
 ));
