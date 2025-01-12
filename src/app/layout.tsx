@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import { Card } from "@/components/ui/card";
 import Providers from "@/providers";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 import type { LayoutProps } from "@/types/next";
 
 const geistSans = Geist({
@@ -22,8 +23,12 @@ export default function RootLayout({ children }: LayoutProps) {
       <body className={`${geistSans.variable} antialiased`}>
         <Providers>
           <div className="flex min-h-screen bg-background p-4">
-            <Card className="flex-grow p-4">{children}</Card>
+            <Card className="flex-grow p-4">
+              <div className="flex flex-wrap gap-4">{children}</div>
+            </Card>
           </div>
+
+          <Toaster />
         </Providers>
       </body>
     </html>

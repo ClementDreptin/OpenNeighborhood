@@ -1,65 +1,3 @@
-import net from "node:net";
-import PromiseSocket from "promise-socket";
-import "server-only";
-
-export async function sendCommand(
-  ipAddress: string,
-  expect: Status,
-  command: string,
-) {
-  const socket = new PromiseSocket(new net.Socket()).setTimeout(3000);
-  await socket.connect({ host: ipAddress, port: 730 });
-
-  await socket.writeAll(`${command}\r\nbye\r\n`);
-  const response = await socket.readAll();
-  const data = response?.toString().trim();
-
-  if (data == null) {
-    throw new Error("Couldn't read from socket.");
-  }
-
-  const lines = data
-    .split(LINE_DELIMITER)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  if (!hasStatus(lines[0], "Connected")) {
-    throw new Error("Expected response to start with 'connected'.");
-  }
-  lines.shift();
-
-  if (readHeader(lines[lines.length - 1], "Ok") !== "bye") {
-    throw new Error("Expected response to end with 'bye'.");
-  }
-  lines.pop();
-
-  const header = readHeader(lines[0], expect);
-
-  if (expect === "MultilineResponseFollows") {
-    return lines.slice(1, -1).join(LINE_DELIMITER);
-  }
-
-  return header;
-}
-
-export function hasStatus(line: string, expect: Status) {
-  const statusCodeString = line.substring(0, 3);
-  const expectedStatusCode = STATUS_CODES[expect];
-
-  return statusCodeString === expectedStatusCode;
-}
-
-export function readHeader(line: string, expect: Status) {
-  if (!hasStatus(line, expect)) {
-    throw new Error(
-      `Unexpected status code. Expected ${expect} but received ${line}.`,
-    );
-  }
-
-  // The response prefix is "XXX- ", so 5 characters
-  return line.substring(5);
-}
-
 export function getStringProperty(line: string, propertyName: string) {
   const propertyStartIndex = line.indexOf(propertyName);
   if (propertyStartIndex === -1) {
@@ -143,11 +81,6 @@ export function driveNameToDriveFriendlyName(driveName: string) {
   }
 }
 
-export const LINE_DELIMITER = "\r\n";
-
-export const STATUS_CODES = {
-  Ok: "200",
-  Connected: "201",
-  MultilineResponseFollows: "202",
-} as const;
-export type Status = keyof typeof STATUS_CODES;
+export function filetimeToUnixTime(fileTime: number) {
+  return fileTime / 10_000_000 - 11_644_473_600;
+}

@@ -9,7 +9,7 @@ interface ErrorPageProps {
 }
 
 export default function ErrorPage({ error }: ErrorPageProps) {
-  const retry = () => {
+  const goBackToHomePage = () => {
     redirect("/");
   };
 
@@ -22,7 +22,7 @@ export default function ErrorPage({ error }: ErrorPageProps) {
         </p>
       </div>
 
-      <Button onClick={retry}>Retry</Button>
+      <Button onClick={goBackToHomePage}>Go back to home page</Button>
     </div>
   );
 }

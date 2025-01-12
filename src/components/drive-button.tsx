@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname, useRouter } from "next/navigation";
 import { Description } from "@radix-ui/react-dialog";
 import { IconButton } from "./ui/icon-button";
 import driveIcon from "@/../public/drive.svg";
@@ -27,17 +30,29 @@ interface DriveButtonProps {
 }
 
 export default function DriveButton({ drive }: DriveButtonProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const driveNameWithoutColon = drive.name.endsWith(":")
     ? drive.name.slice(0, -1)
     : drive.name;
   const usedSpaceRatio =
     drive.totalBytes !== 0 ? drive.totalUsedBytes / drive.totalBytes : 0;
 
+  const handleClick = () => {
+    router.push(
+      `${pathname}/files?${new URLSearchParams({ path: `${drive.name}\\` })}`,
+    );
+  };
+
   return (
     <Dialog>
       <ContextMenu>
         <ContextMenuTrigger>
-          <IconButton title={drive.friendlyName} iconSrc={driveIcon}>
+          <IconButton
+            title={drive.friendlyName}
+            iconSrc={driveIcon}
+            onClick={handleClick}
+          >
             {`${drive.friendlyName} (${drive.name})`}
           </IconButton>
         </ContextMenuTrigger>
