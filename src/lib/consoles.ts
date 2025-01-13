@@ -23,10 +23,8 @@ export async function getConsoles() {
   }
 }
 
-const IPV4_REGEX = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/;
-
 export async function createConsole(ipAddress: string) {
-  if (!IPV4_REGEX.test(ipAddress)) {
+  if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
   }
 
@@ -49,7 +47,7 @@ export async function createConsole(ipAddress: string) {
 }
 
 export async function deleteConsole(ipAddress: string) {
-  if (!IPV4_REGEX.test(ipAddress)) {
+  if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
   }
 
