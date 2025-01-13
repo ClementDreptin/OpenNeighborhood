@@ -69,7 +69,7 @@ export default function DriveButton({ drive }: DriveButtonProps) {
           <Description>Properties of {driveNameWithoutColon}</Description>
         </DialogHeader>
 
-        <div className="grid grid-cols-3 gap-x-4 gap-y-2">
+        <div className="grid-cols-3 grid gap-x-4 gap-y-2">
           <div>Drive:</div>
           <div className="col-span-2">{driveNameWithoutColon}</div>
           <div>Type:</div>
@@ -78,7 +78,7 @@ export default function DriveButton({ drive }: DriveButtonProps) {
 
         <Separator />
 
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+        <div className="grid-cols-4 grid gap-x-4 gap-y-2">
           <div>Used space:</div>
           <div className="col-span-2 text-right">
             {drive.totalUsedBytes.toLocaleString()} bytes
@@ -93,7 +93,7 @@ export default function DriveButton({ drive }: DriveButtonProps) {
 
         <Separator />
 
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid-cols-4 grid gap-4">
           <div>Capacity:</div>
           <div className="col-span-2 text-right">
             {drive.totalBytes.toLocaleString()} bytes

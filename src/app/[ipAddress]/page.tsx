@@ -14,7 +14,7 @@ export default async function DrivesPage(props: PageProps) {
   }
 
   return (
-    <div className="grid grid-cols-autofit gap-4">
+    <div className="grid grid-cols-autofill gap-4">
       {drives.map((drive) => (
         <DriveButton key={drive.name} drive={drive} />
       ))}

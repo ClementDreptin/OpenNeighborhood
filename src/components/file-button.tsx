@@ -132,14 +132,14 @@ export default function FileButton({ file }: FileButtonProps) {
           <DialogDescription>Properties of {file.name}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+        <div className="grid-cols-4 grid gap-x-4 gap-y-2">
           <div>Name:</div>
           <div className="col-span-3">{file.name}</div>
         </div>
 
         <Separator />
 
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+        <div className="grid-cols-4 grid gap-x-4 gap-y-2">
           <div>Location:</div>
           <div className="col-span-3">{parentPath}</div>
           {!file.isDirectory && (
@@ -152,7 +152,7 @@ export default function FileButton({ file }: FileButtonProps) {
 
         <Separator />
 
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+        <div className="grid-cols-4 grid gap-x-4 gap-y-2">
           <div>Created:</div>
           <div className="col-span-3">
             {unixTimeToString(file.creationDate)}

@@ -59,7 +59,7 @@ export default {
       },
     },
     gridTemplateColumns: {
-      autofit: "repeat(auto-fit, minmax(20ch, 1fr))",
+      autofill: "repeat(auto-fill, minmax(20ch, 1fr))",
     },
   },
   plugins: [tailwindAnimate],
