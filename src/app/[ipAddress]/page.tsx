@@ -1,7 +1,7 @@
 import DriveButton from "@/components/drive-button";
 import ErrorPage from "@/components/error-page";
 import { getDrives } from "@/lib/consoles";
-import { PageProps } from "@/types/next";
+import type { PageProps } from "@/types/next";
 
 export default async function DrivesPage(props: PageProps) {
   const { ipAddress } = await props.params;

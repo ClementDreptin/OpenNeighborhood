@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { StaticImageData } from "next/image";
 import {
   useParams,
   usePathname,
@@ -50,10 +51,10 @@ export default function FileButton({ file }: FileButtonProps) {
   const launchXexFormRef = React.useRef<HTMLFormElement | null>(null);
 
   const icon = file.isDirectory
-    ? directoryIcon
+    ? (directoryIcon as StaticImageData)
     : file.isXex
-      ? xexIcon
-      : fileIcon;
+      ? (xexIcon as StaticImageData)
+      : (fileIcon as StaticImageData);
 
   const openDirectory = () => {
     router.push(`${pathname}?${new URLSearchParams({ path: fullPath })}`);
@@ -180,6 +181,7 @@ function displayErrorToast(error: Error) {
       label: "Dismiss",
       // I don't know why onClick is required since clicking the button
       // will close the toast even if onClick doesn't do anything, whatever...
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       onClick: () => {},
     },
   });

@@ -25,7 +25,7 @@ export function getStringProperty(line: string, propertyName: string) {
 
   const lastQuoteIndex = line.indexOf('"', firstQuoteIndex + 1);
   if (lastQuoteIndex === -1) {
-    throw new Error(`Expected ${line} to contain a second '\"'.`);
+    throw new Error(`Expected ${line} to contain a second '"'.`);
   }
 
   return line.substring(firstQuoteIndex + 1, lastQuoteIndex);

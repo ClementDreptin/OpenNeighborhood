@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { StaticImageData } from "next/image";
 import addConsoleButtonIcon from "@/../public/add-console-button.svg";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +52,9 @@ export default function AddConsoleButton() {
   return (
     <Dialog open={modalOpen} onOpenChange={setModalOpen}>
       <DialogTrigger asChild>
-        <IconButton iconSrc={addConsoleButtonIcon}>Add Xbox 360</IconButton>
+        <IconButton iconSrc={addConsoleButtonIcon as StaticImageData}>
+          Add Xbox 360
+        </IconButton>
       </DialogTrigger>
 
       <DialogContent>
@@ -65,7 +68,7 @@ export default function AddConsoleButton() {
         <form className="flex flex-col gap-4" action={formAction}>
           <div className="flex gap-2">
             {ipAddressBytes.map((byte, index) => {
-              const id = `ip-address-byte-${index}`;
+              const id = `ip-address-byte-${index.toString()}`;
 
               return (
                 <div key={index} className="w-full">

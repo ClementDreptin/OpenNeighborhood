@@ -1,7 +1,7 @@
 import ErrorPage from "@/components/error-page";
 import FileButton from "@/components/file-button";
 import { getFiles } from "@/lib/consoles";
-import { PageProps } from "@/types/next";
+import type { PageProps } from "@/types/next";
 
 export default async function FilesPage(props: PageProps) {
   const { ipAddress } = await props.params;

@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   const reader = xbdm.createSocketReader(socket);
   await xbdm.readHeader(reader, "Connected");
 
-  await xbdm.writeCommand(socket, `getfile name=\"${filePath}\"`);
+  await xbdm.writeCommand(socket, `getfile name="${filePath}"`);
 
   await xbdm.readHeader(reader, "BinaryResponseFollows");
 

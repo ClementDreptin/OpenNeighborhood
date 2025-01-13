@@ -5,7 +5,7 @@ import { createConsole, deleteConsole, launchXex } from "./consoles";
 import "server-only";
 
 export async function createConsoleAction(_: unknown, formData: FormData) {
-  const ipAddressBytes = Array.from(formData.values());
+  const ipAddressBytes = Array.from(formData.values()).map(String);
 
   try {
     await createConsole(ipAddressBytes.join("."));
@@ -22,10 +22,16 @@ export async function createConsoleAction(_: unknown, formData: FormData) {
 }
 
 export async function deleteConsoleAction(_: unknown, formData: FormData) {
-  const ipAddress = formData.get("ipAddress") ?? "";
+  const ipAddress = formData.get("ipAddress");
+  if (typeof ipAddress !== "string") {
+    return {
+      success: false,
+      error: new Error("ipAddress needs to be of type string."),
+    };
+  }
 
   try {
-    await deleteConsole(ipAddress.toString());
+    await deleteConsole(ipAddress);
   } catch (err) {
     return {
       success: false,
@@ -39,11 +45,24 @@ export async function deleteConsoleAction(_: unknown, formData: FormData) {
 }
 
 export async function launchXexAction(_: unknown, formData: FormData) {
-  const ipAddress = formData.get("ipAddress") ?? "";
-  const filePath = formData.get("filePath") ?? "";
+  const ipAddress = formData.get("ipAddress");
+  if (typeof ipAddress !== "string") {
+    return {
+      success: false,
+      error: new Error("ipAddress needs to be of type string."),
+    };
+  }
+
+  const filePath = formData.get("filePath");
+  if (typeof filePath !== "string") {
+    return {
+      success: false,
+      error: new Error("filePath needs to be of type string."),
+    };
+  }
 
   try {
-    await launchXex(ipAddress.toString(), filePath.toString());
+    await launchXex(ipAddress, filePath);
   } catch (err) {
     return {
       success: false,

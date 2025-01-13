@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { StaticImageData } from "next/image";
 import { useRouter } from "next/navigation";
 import consoleIcon from "@/../public/console.svg";
 import { Button } from "@/components/ui/button";
@@ -60,7 +61,7 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
           <IconButton
             className="break-all"
             title={console.name}
-            iconSrc={consoleIcon}
+            iconSrc={consoleIcon as StaticImageData}
             onClick={handleClick}
           >
             {console.name}

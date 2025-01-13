@@ -161,7 +161,7 @@ export async function getFiles(ipAddress: string, dirPath: string) {
   const response = await xbdm.sendCommand(
     ipAddress,
     "MultilineResponseFollows",
-    `dirlist name=\"${dirPath}\"`,
+    `dirlist name="${dirPath}"`,
   );
   const lines = response.split(xbdm.LINE_DELIMITER);
 
@@ -218,7 +218,7 @@ export async function launchXex(ipAddress: string, filePath: string) {
   await xbdm.sendCommand(
     ipAddress,
     "Ok",
-    `magicboot title=\"${filePath}\" directory=\"${parentPath}\"`,
+    `magicboot title="${filePath}" directory="${parentPath}"`,
   );
 }
 

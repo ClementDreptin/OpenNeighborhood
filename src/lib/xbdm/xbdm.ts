@@ -19,7 +19,7 @@ export async function sendCommand(
   const header = await readHeader(reader, expect);
 
   if (expect === "MultilineResponseFollows") {
-    while (true) {
+    for (;;) {
       const line = await reader.readLine();
       if (line === ".") {
         break;

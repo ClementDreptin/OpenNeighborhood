@@ -1,5 +1,6 @@
 "use client";
 
+import type { StaticImageData } from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Description } from "@radix-ui/react-dialog";
 import { IconButton } from "./ui/icon-button";
@@ -50,7 +51,7 @@ export default function DriveButton({ drive }: DriveButtonProps) {
         <ContextMenuTrigger>
           <IconButton
             title={drive.friendlyName}
-            iconSrc={driveIcon}
+            iconSrc={driveIcon as StaticImageData}
             onClick={handleClick}
           >
             {`${drive.friendlyName} (${drive.name})`}

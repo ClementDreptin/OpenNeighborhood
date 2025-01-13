@@ -93,9 +93,15 @@ export function createSocketReader(socket: Socket): SocketReader {
           buffer = Buffer.alloc(0);
         }
 
-        socket.on("data", (data) => controller.enqueue(data));
-        socket.on("error", (error: Error) => controller.error(error));
-        socket.on("end", () => controller.close());
+        socket.on("data", (data) => {
+          controller.enqueue(data);
+        });
+        socket.on("error", (error: Error) => {
+          controller.error(error);
+        });
+        socket.on("end", () => {
+          controller.close();
+        });
       },
       cancel: () => {
         socket.destroy();
