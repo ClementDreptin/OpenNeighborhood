@@ -1,11 +1,15 @@
 export function getStringProperty(line: string, propertyName: string) {
-  const propertyStartIndex = line.indexOf(propertyName);
+  // All string properties are like this: NAME="VALUE"
+
+  // For the following example: drivename="HDD"
+
+  const propertyStartIndex = line.indexOf(propertyName); // 0
   if (propertyStartIndex === -1) {
     throw new Error(`Property '${propertyName}' not found in ${line}.`);
   }
 
-  const propertyEndIndex = propertyStartIndex + propertyName.length;
-  const equalIndex = line.indexOf("=", propertyEndIndex);
+  const propertyEndIndex = propertyStartIndex + propertyName.length; // 9
+  const equalIndex = line.indexOf("=", propertyEndIndex); // 9
   if (equalIndex === -1) {
     throw new Error(`Expected ${line} to contain '='.`);
   }
@@ -15,7 +19,7 @@ export function getStringProperty(line: string, propertyName: string) {
     );
   }
 
-  const firstQuoteIndex = line.indexOf('"', equalIndex);
+  const firstQuoteIndex = line.indexOf('"', equalIndex); // 10
   if (firstQuoteIndex === -1) {
     throw new Error(`Expected ${line} to contain '"'.`);
   }
@@ -23,7 +27,7 @@ export function getStringProperty(line: string, propertyName: string) {
     throw new Error("Expected first '\"' to be right after '='.");
   }
 
-  const lastQuoteIndex = line.indexOf('"', firstQuoteIndex + 1);
+  const lastQuoteIndex = line.indexOf('"', firstQuoteIndex + 1); // 13
   if (lastQuoteIndex === -1) {
     throw new Error(`Expected ${line} to contain a second '"'.`);
   }
@@ -32,13 +36,17 @@ export function getStringProperty(line: string, propertyName: string) {
 }
 
 export function getIntegerProperty(line: string, propertyName: string) {
-  const propertyStartIndex = line.indexOf(propertyName);
+  // All integer properties are like this: NAME=VALUE
+
+  // For the following example: size=42
+
+  const propertyStartIndex = line.indexOf(propertyName); // 0
   if (propertyStartIndex === -1) {
     throw new Error(`Property '${propertyName}' not found in ${line}.`);
   }
 
-  const propertyEndIndex = propertyStartIndex + propertyName.length;
-  const equalIndex = line.indexOf("=", propertyEndIndex);
+  const propertyEndIndex = propertyStartIndex + propertyName.length; // 4
+  const equalIndex = line.indexOf("=", propertyEndIndex); // 4
   if (equalIndex === -1) {
     throw new Error(`Expected ${line} to contain '='.`);
   }
@@ -48,9 +56,11 @@ export function getIntegerProperty(line: string, propertyName: string) {
     );
   }
 
+  // The value ends when we encounter a space
   let valueEndIndex = line.indexOf(" ", equalIndex + 1);
   if (valueEndIndex === -1) {
-    valueEndIndex = line.length - 1;
+    // If no spaces were found, the value ends at the end of the line
+    valueEndIndex = line.length - 1; // 6
   }
 
   const valueString = line.substring(equalIndex + 1, valueEndIndex);

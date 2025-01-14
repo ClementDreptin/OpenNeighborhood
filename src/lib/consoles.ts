@@ -196,9 +196,12 @@ export async function getFiles(ipAddress: string, dirPath: string) {
   });
 
   return files.sort((first, second) => {
+    // Compare the file names (alphabetical)
     const firstNameGreaterThanSecondName = first.name > second.name;
     const secondNameGreaterThanFirstName = second.name > first.name;
 
+    // If the file is a directory, decrease the score by 2. The score is decreased because the lower the score the closer
+    // the element will be to the start of the array and we want directories to always be before files
     const firstScore =
       Number(firstNameGreaterThanSecondName) - Number(first.isDirectory) * 2;
     const secondScore =
