@@ -79,15 +79,15 @@ export async function getDrives(ipAddress: string) {
     throw new Error("IP address is not valid.");
   }
 
-  const driveListResponse = await xbdm.sendCommand(
+  const response = await xbdm.sendCommand(
     ipAddress,
     "MultilineResponseFollows",
     "drivelist",
   );
-  const driveListResponseLines = driveListResponse.split(xbdm.LINE_DELIMITER);
+  const lines = response !== "" ? response.split(xbdm.LINE_DELIMITER) : [];
 
   const drives: Drive[] = [];
-  for (const line of driveListResponseLines) {
+  for (const line of lines) {
     const driveName = xbdm.getStringProperty(line, "drivename");
     const driveFreeSpaceResponse = await xbdm.sendCommand(
       ipAddress,
@@ -163,7 +163,7 @@ export async function getFiles(ipAddress: string, dirPath: string) {
     "MultilineResponseFollows",
     `dirlist name="${dirPath}"`,
   );
-  const lines = response.split(xbdm.LINE_DELIMITER);
+  const lines = response !== "" ? response.split(xbdm.LINE_DELIMITER) : [];
 
   const files = lines.map((line) => {
     const name = xbdm.getStringProperty(line, "name");

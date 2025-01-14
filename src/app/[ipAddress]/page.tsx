@@ -13,6 +13,10 @@ export default async function DrivesPage(props: PageProps) {
     return <ErrorPage error={err} />;
   }
 
+  if (drives.length === 0) {
+    return <p className="text-center">This console doesn't have any drives.</p>;
+  }
+
   return (
     <div className="grid grid-cols-autofill gap-4">
       {drives.map((drive) => (

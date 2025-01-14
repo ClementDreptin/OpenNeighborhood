@@ -18,6 +18,10 @@ export default async function FilesPage(props: PageProps) {
     return <ErrorPage error={err} />;
   }
 
+  if (files.length === 0) {
+    return <p className="text-center">This folder is empty.</p>;
+  }
+
   return (
     <div className="grid grid-cols-autofill gap-4">
       {files.map((file) => (
