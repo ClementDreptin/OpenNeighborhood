@@ -71,7 +71,7 @@ export default function FileButton({ file }: FileButtonProps) {
     }
 
     const url = new URL(
-      `${window.location.pathname}/api`,
+      `${window.location.pathname}/download`,
       window.location.origin,
     );
     url.searchParams.set(

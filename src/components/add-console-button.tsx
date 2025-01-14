@@ -99,7 +99,7 @@ export default function AddConsoleButton() {
           {isError ? (
             <p
               id={IP_ADDRESS_HELPER_TEXT_ID}
-              data-testid={IP_ADDRESS_HELPER_TEXT_ID}
+              role="alert"
               className="text-destructive"
             >
               {formState.error?.message}

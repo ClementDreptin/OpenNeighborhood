@@ -13,7 +13,6 @@ export async function GET(request: NextRequest) {
       status: 400,
     });
   }
-
   if (ipAddress == null || ipAddress === "") {
     return new Response(
       "You need to specify an 'ipAddress' search parameter.",

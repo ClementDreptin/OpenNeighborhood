@@ -33,9 +33,7 @@ interface DriveButtonProps {
 export default function DriveButton({ drive }: DriveButtonProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const driveNameWithoutColon = drive.name.endsWith(":")
-    ? drive.name.slice(0, -1)
-    : drive.name;
+  const driveNameWithoutColon = drive.name.slice(0, -1);
   const usedSpaceRatio =
     drive.totalBytes !== 0 ? drive.totalUsedBytes / drive.totalBytes : 0;
 
