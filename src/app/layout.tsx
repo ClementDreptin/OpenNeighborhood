@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} antialiased`}>
+      <body className={`${geistSans.className} antialiased`}>
         <Providers>
           <div className="flex min-h-screen bg-background p-4">
             <Card className="flex-grow p-4">
