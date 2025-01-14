@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 interface IconButtonProps extends ButtonProps {
   iconSrc: React.ComponentProps<typeof Image>["src"];
-  priority: React.ComponentProps<typeof Image>["priority"];
+  priority?: React.ComponentProps<typeof Image>["priority"];
 }
 
 const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
