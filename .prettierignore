@@ -1,0 +1,24 @@
+# next
+.next/
+next-env.d.ts
+
+# npm
+# (These files are managed by npm and can be quite large and long to parse)
+package.json
+package-lock.json
+
+# Files not supported by prettier
+
+# images
+*.ico
+*.jpg
+*.png
+*.svg
+
+# config files
+.editorconfig
+.gitignore
+.prettierignore
+
+# License
+LICENSE
