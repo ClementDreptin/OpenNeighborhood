@@ -36,7 +36,7 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
     deleteConsoleAction,
     null,
   );
-  const isError = formState?.success === false;
+  const isError = formState?.success === false && !isPending;
 
   const handleClick = () => {
     router.push(`/${console.ipAddress}`);

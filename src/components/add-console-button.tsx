@@ -27,7 +27,7 @@ export default function AddConsoleButton() {
     createConsoleAction,
     null,
   );
-  const isError = formState?.success === false;
+  const isError = formState?.success === false && !isPending;
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
