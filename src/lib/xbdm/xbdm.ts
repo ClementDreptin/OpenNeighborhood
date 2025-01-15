@@ -1,5 +1,4 @@
 import { Socket } from "node:net";
-import PromiseSocket from "promise-socket";
 import { LINE_DELIMITER, STATUS_CODES, type Status } from "./constants";
 import { createSocketReader, type SocketReader } from "./reader";
 import "server-only";
@@ -54,19 +53,42 @@ export async function sendCommand(
   return header;
 }
 
-export async function connect(ipAddress: string) {
-  const socket = new PromiseSocket(new Socket()).setTimeout(3000);
-  await socket.connect({ host: ipAddress, port: 730 });
+export async function connect(ipAddress: string): Promise<Socket> {
+  const socket = new Socket().setTimeout(3000);
 
-  return socket.socket;
+  return new Promise((resolve, reject) => {
+    const onConnect = () => {
+      resolve(socket);
+    };
+
+    const onTimeout = () => {
+      reject(new Error("Timeout."));
+    };
+
+    socket.once("error", reject);
+    socket.once("timeout", onTimeout);
+    socket.connect({ host: ipAddress, port: 730 }, onConnect);
+  });
 }
 
-export async function writeCommand(socket: Socket, command: string) {
-  const wrapper = new PromiseSocket(socket);
+export async function writeCommand(
+  socket: Socket,
+  command: string,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // Follow every command by a "bye" command to tell the console to close the connection
+    // whenever it's done
+    const fullCommand = `${command}\r\nbye\r\n`;
 
-  // Follow every command by a "bye" command to tell the console to close the connection
-  // whenever it's done
-  await wrapper.writeAll(`${command}\r\nbye\r\n`);
+    socket.write(fullCommand, (error) => {
+      if (error != null) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
 }
 
 export async function readHeader(reader: SocketReader, expect: Status) {
