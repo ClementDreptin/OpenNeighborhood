@@ -42,21 +42,11 @@ export function createSocketReader(socket: Socket): SocketReader {
         const line = buffer.subarray(0, newLineIndex).toString();
         buffer = buffer.subarray(newLineIndex + LINE_DELIMITER.length);
 
-        // Cleanup
-        socket.off("data", onData);
-        socket.off("error", onError);
-
         resolve(line);
       };
 
-      const onError = (error: Error) => {
-        socket.off("data", onData);
-        socket.off("error", onError);
-        reject(error);
-      };
-
-      socket.on("data", onData);
-      socket.on("error", onError);
+      socket.once("data", onData);
+      socket.once("error", reject);
     });
   };
 
@@ -86,21 +76,11 @@ export function createSocketReader(socket: Socket): SocketReader {
         const result = buffer.subarray(0, length);
         buffer = buffer.subarray(length);
 
-        // Cleanup
-        socket.off("data", onData);
-        socket.off("error", onError);
-
         resolve(result);
       };
 
-      const onError = (error: Error) => {
-        socket.off("data", onData);
-        socket.off("error", onError);
-        reject(error);
-      };
-
-      socket.on("data", onData);
-      socket.on("error", onError);
+      socket.once("data", onData);
+      socket.once("error", reject);
     });
   };
 

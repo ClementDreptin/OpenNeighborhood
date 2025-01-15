@@ -58,21 +58,14 @@ export async function connect(ipAddress: string): Promise<Socket> {
 
   return new Promise((resolve, reject) => {
     const onConnect = () => {
-      socket.off("connect", onConnect);
       resolve(socket);
     };
 
-    const onError = (error: Error) => {
-      socket.off("connect", onConnect);
-      reject(error);
-    };
-
     const onTimeout = () => {
-      socket.off("connect", onConnect);
       reject(new Error("Timeout."));
     };
 
-    socket.once("error", onError);
+    socket.once("error", reject);
     socket.once("timeout", onTimeout);
     socket.connect({ host: ipAddress, port: 730 }, onConnect);
   });
