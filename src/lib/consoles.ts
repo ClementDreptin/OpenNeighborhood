@@ -39,6 +39,10 @@ export async function createConsole(ipAddress: string) {
     }
   }
 
+  if (consoles.find((console) => console.ipAddress === ipAddress) != null) {
+    throw new Error(`Console with IP address ${ipAddress} already exists.`);
+  }
+
   const consoleName = await xbdm.sendCommand(ipAddress, "Ok", "dbgname");
 
   consoles.push({ name: consoleName, ipAddress });
@@ -57,7 +61,7 @@ export async function deleteConsole(ipAddress: string) {
     (console) => console.ipAddress === ipAddress,
   );
   if (consoleIndex === -1) {
-    throw new Error(`Console with ip address ${ipAddress} not found.`);
+    throw new Error(`Console with IP address ${ipAddress} not found.`);
   }
 
   consoles.splice(consoleIndex, 1);
