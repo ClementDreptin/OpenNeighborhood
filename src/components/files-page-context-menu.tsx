@@ -9,6 +9,14 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 
 interface FilesPageContextMenuProps {
   children: React.ReactNode;
@@ -21,6 +29,10 @@ export default function FilesPageContextMenu({
   const { ipAddress } = useParams();
   const searchParams = useSearchParams();
   const dirPath = searchParams.get("path") ?? "";
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [fileName, setFileName] = React.useState("");
+  const [uploadProgress, setUploadProgress] = React.useState(0);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const handleUpload = () => {
     const fileInput = document.createElement("input");
@@ -38,34 +50,61 @@ export default function FilesPageContextMenu({
       formData.set("dirPath", dirPath);
       formData.set("file", file);
 
-      axios
-        .post(`${pathname}/upload`, formData, {
-          onUploadProgress: ({ loaded, total }) => {
-            if (total == null) {
-              console.log("total is undefined");
-              return;
-            }
+      setModalOpen(true);
+      setErrorMessage("");
+      setFileName(file.name);
 
-            const progress = Math.round((loaded * 100) / total);
-            console.log(`${progress.toString()}%`);
-          },
+      const axiosConfig: Parameters<typeof axios.post>[2] = {
+        onUploadProgress: ({ loaded, total }) => {
+          if (total == null) {
+            return;
+          }
+
+          setUploadProgress(Math.round((loaded * 100) / total));
+        },
+      };
+
+      axios
+        .post(`${pathname}/upload`, formData, axiosConfig)
+        .then(() => {
+          setModalOpen(false);
         })
-        .catch(console.error)
-        .finally(() => {
-          console.log("done");
+        .catch((error: unknown) => {
+          if (error instanceof Error) {
+            setErrorMessage(error.message);
+          }
         });
     });
   };
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger>{children}</ContextMenuTrigger>
+    <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+      <ContextMenu>
+        <ContextMenuTrigger>{children}</ContextMenuTrigger>
 
-      <ContextMenuContent>
-        <ContextMenuItem inset onClick={handleUpload}>
-          Upload file
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+        <ContextMenuContent>
+          <ContextMenuItem inset onClick={handleUpload}>
+            Upload file
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Upload progress</DialogTitle>
+          <DialogDescription>
+            {fileName} is being uploaded to {dirPath}, please wait...
+          </DialogDescription>
+        </DialogHeader>
+
+        <Progress value={uploadProgress} />
+
+        {errorMessage !== "" ? (
+          <p role="alert" className="text-destructive">
+            {errorMessage}
+          </p>
+        ) : null}
+      </DialogContent>
+    </Dialog>
   );
 }
