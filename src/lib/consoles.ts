@@ -218,6 +218,27 @@ export async function getFiles(ipAddress: string, dirPath: string) {
   });
 }
 
+export async function downloadFile(ipAddress: string, filePath: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  const socket = await xbdm.connect(ipAddress);
+  const reader = xbdm.createSocketReader(socket);
+  await xbdm.readHeader(reader, "Connected");
+
+  await xbdm.writeCommand(socket, `getfile name="${filePath}"`);
+
+  await xbdm.readHeader(reader, "BinaryResponseFollows");
+
+  const sizeBuffer = await reader.readBytes(4);
+  const size = sizeBuffer.readUInt32LE();
+
+  const stream = reader.streamRemainingData();
+
+  return { size, stream };
+}
+
 export async function uploadFile(
   ipAddress: string,
   dirPath: string,

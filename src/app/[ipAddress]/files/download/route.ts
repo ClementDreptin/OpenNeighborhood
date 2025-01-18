@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import path from "node:path";
 import mime from "mime";
-import * as xbdm from "@/lib/xbdm";
+import { downloadFile } from "@/lib/consoles";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -24,19 +24,7 @@ export async function GET(request: NextRequest) {
 
   const fileName = path.win32.basename(filePath);
   const mimeType = mime.getType(fileName);
-
-  const socket = await xbdm.connect(ipAddress);
-  const reader = xbdm.createSocketReader(socket);
-  await xbdm.readHeader(reader, "Connected");
-
-  await xbdm.writeCommand(socket, `getfile name="${filePath}"`);
-
-  await xbdm.readHeader(reader, "BinaryResponseFollows");
-
-  const sizeBuffer = await reader.readBytes(4);
-  const size = sizeBuffer.readUInt32LE();
-
-  const stream = reader.streamRemainingData();
+  const { size, stream } = await downloadFile(ipAddress, filePath);
 
   return new Response(stream, {
     status: 200,
