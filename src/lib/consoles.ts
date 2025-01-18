@@ -1,8 +1,11 @@
-import fs from "node:fs/promises";
+import fs from "node:fs";
 import path from "node:path";
 import { isValidIpv4 } from "./utils";
 import * as xbdm from "./xbdm";
 import "server-only";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import type { ReadableStream } from "node:stream/web";
 
 export interface Console {
   name: string;
@@ -215,6 +218,19 @@ export async function getFiles(ipAddress: string, dirPath: string) {
   });
 }
 
+export async function uploadFile(
+  ipAddress: string,
+  dirPath: string,
+  file: globalThis.File,
+) {
+  console.log({ ipAddress, dirPath });
+
+  const readStream = Readable.fromWeb(file.stream() as ReadableStream);
+  const writeStream = fs.createWriteStream(file.name);
+
+  await pipeline(readStream, writeStream);
+}
+
 export async function launchXex(ipAddress: string, filePath: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
@@ -230,7 +246,7 @@ export async function launchXex(ipAddress: string, filePath: string) {
 }
 
 async function getConsolesFromFile() {
-  const fileContent = await fs.readFile(CONFIG_FILE_PATH, {
+  const fileContent = await fs.promises.readFile(CONFIG_FILE_PATH, {
     encoding: "utf-8",
   });
 
@@ -238,7 +254,7 @@ async function getConsolesFromFile() {
 }
 
 async function writeConsolesToFile(consoles: Console[]) {
-  await fs.writeFile(CONFIG_FILE_PATH, JSON.stringify(consoles), {
+  await fs.promises.writeFile(CONFIG_FILE_PATH, JSON.stringify(consoles), {
     encoding: "utf-8",
   });
 }
