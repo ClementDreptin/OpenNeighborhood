@@ -47,8 +47,6 @@ export default function FileButton({ file }: FileButtonProps) {
   const parentPath = searchParams.get("path") ?? "";
   const fullPath =
     (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
-  const [, launchXexFormAction] = React.useActionState(launchXexAction, null);
-  const launchXexFormRef = React.useRef<HTMLFormElement | null>(null);
 
   const icon = file.isDirectory
     ? (directoryIcon as StaticImageData)
@@ -61,7 +59,15 @@ export default function FileButton({ file }: FileButtonProps) {
   };
 
   const handleLaunch = () => {
-    launchXexFormRef.current?.requestSubmit();
+    const formData = new FormData();
+    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("filePath", fullPath);
+
+    launchXexAction(null, formData).catch((error: unknown) => {
+      if (error instanceof Error) {
+        displayErrorToast(error);
+      }
+    });
   };
 
   const handleDownload = () => {
@@ -91,13 +97,6 @@ export default function FileButton({ file }: FileButtonProps) {
     }
   };
 
-  const launchXexFormActionWrapper = () => {
-    const formData = new FormData();
-    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
-    formData.set("filePath", fullPath);
-    launchXexFormAction(formData);
-  };
-
   return (
     <Dialog>
       <ContextMenu>
@@ -108,15 +107,9 @@ export default function FileButton({ file }: FileButtonProps) {
         </ContextMenuTrigger>
         <ContextMenuContent>
           {file.isXex && (
-            <form action={launchXexFormActionWrapper} ref={launchXexFormRef}>
-              <ContextMenuItem
-                className="font-bold"
-                inset
-                onClick={handleLaunch}
-              >
-                Launch
-              </ContextMenuItem>
-            </form>
+            <ContextMenuItem className="font-bold" inset onClick={handleLaunch}>
+              Launch
+            </ContextMenuItem>
           )}
           <ContextMenuItem inset onClick={handleDownload}>
             Download
