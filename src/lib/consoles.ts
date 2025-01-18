@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { isValidIpv4 } from "./utils";
-import * as xbdm from "./xbdm";
-import "server-only";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream } from "node:stream/web";
+import { isValidIpv4 } from "./utils";
+import * as xbdm from "./xbdm";
+import "server-only";
 
 export interface Console {
   name: string;
@@ -223,12 +223,23 @@ export async function uploadFile(
   dirPath: string,
   file: globalThis.File,
 ) {
-  console.log({ ipAddress, dirPath });
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
 
-  const readStream = Readable.fromWeb(file.stream() as ReadableStream);
-  const writeStream = fs.createWriteStream(file.name);
+  const socket = await xbdm.connect(ipAddress);
+  const reader = xbdm.createSocketReader(socket);
+  await xbdm.readHeader(reader, "Connected");
 
-  await pipeline(readStream, writeStream);
+  const filePath = path.win32.join(dirPath, file.name);
+  const command = `sendfile name="${filePath}" length=0x${file.size.toString(16)}`;
+  await xbdm.writeCommand(socket, command);
+  await xbdm.readHeader(reader, "SendBinaryData");
+
+  await pipeline(
+    Readable.fromWeb(file.stream() as ReadableStream),
+    xbdm.createWriteStream(socket),
+  );
 }
 
 export async function launchXex(ipAddress: string, filePath: string) {

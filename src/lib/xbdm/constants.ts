@@ -5,6 +5,7 @@ export const STATUS_CODES = {
   Connected: "201", // 201- connected
   MultilineResponseFollows: "202", // 202- multiline response follows
   BinaryResponseFollows: "203", // 203- binary response follows
+  SendBinaryData: "204", // 204- send binary data
 } as const;
 
 export type Status = keyof typeof STATUS_CODES;

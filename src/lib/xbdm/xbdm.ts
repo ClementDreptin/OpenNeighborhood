@@ -1,6 +1,7 @@
 import { Socket } from "node:net";
 import { LINE_DELIMITER, STATUS_CODES, type Status } from "./constants";
 import { createSocketReader, type SocketReader } from "./reader";
+import { write } from "./writer";
 import "server-only";
 
 export async function sendCommand(
@@ -71,24 +72,11 @@ export async function connect(ipAddress: string): Promise<Socket> {
   });
 }
 
-export async function writeCommand(
-  socket: Socket,
-  command: string,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    // Follow every command by a "bye" command to tell the console to close the connection
-    // whenever it's done
-    const fullCommand = `${command}\r\nbye\r\n`;
-
-    socket.write(fullCommand, (error) => {
-      if (error != null) {
-        reject(error);
-        return;
-      }
-
-      resolve();
-    });
-  });
+export async function writeCommand(socket: Socket, command: string) {
+  // Follow the command by a "bye" command to tell the console to close the connection
+  // whenever it's done
+  const fullCommand = [command, "bye"].join(LINE_DELIMITER);
+  await write(socket, Buffer.from(`${fullCommand}\r\n`));
 }
 
 export async function readHeader(reader: SocketReader, expect: Status) {
