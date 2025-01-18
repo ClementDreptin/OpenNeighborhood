@@ -57,9 +57,9 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
-    },
-    gridTemplateColumns: {
-      autofill: "repeat(auto-fill, minmax(20ch, 1fr))",
+      gridTemplateColumns: {
+        autofill: "repeat(auto-fill, minmax(20ch, 1fr))",
+      },
     },
   },
   plugins: [tailwindAnimate],
