@@ -1,5 +1,8 @@
-import fs from "node:fs/promises";
+import fs from "node:fs";
 import path from "node:path";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import type { ReadableStream } from "node:stream/web";
 import { isValidIpv4 } from "./utils";
 import * as xbdm from "./xbdm";
 import "server-only";
@@ -215,6 +218,30 @@ export async function getFiles(ipAddress: string, dirPath: string) {
   });
 }
 
+export async function uploadFile(
+  ipAddress: string,
+  dirPath: string,
+  file: globalThis.File,
+) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  const socket = await xbdm.connect(ipAddress);
+  const reader = xbdm.createSocketReader(socket);
+  await xbdm.readHeader(reader, "Connected");
+
+  const filePath = path.win32.join(dirPath, file.name);
+  const command = `sendfile name="${filePath}" length=0x${file.size.toString(16)}`;
+  await xbdm.writeCommand(socket, command);
+  await xbdm.readHeader(reader, "SendBinaryData");
+
+  await pipeline(
+    Readable.fromWeb(file.stream() as ReadableStream),
+    xbdm.createWriteStream(socket),
+  );
+}
+
 export async function launchXex(ipAddress: string, filePath: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
@@ -230,7 +257,7 @@ export async function launchXex(ipAddress: string, filePath: string) {
 }
 
 async function getConsolesFromFile() {
-  const fileContent = await fs.readFile(CONFIG_FILE_PATH, {
+  const fileContent = await fs.promises.readFile(CONFIG_FILE_PATH, {
     encoding: "utf-8",
   });
 
@@ -238,7 +265,7 @@ async function getConsolesFromFile() {
 }
 
 async function writeConsolesToFile(consoles: Console[]) {
-  await fs.writeFile(CONFIG_FILE_PATH, JSON.stringify(consoles), {
+  await fs.promises.writeFile(CONFIG_FILE_PATH, JSON.stringify(consoles), {
     encoding: "utf-8",
   });
 }

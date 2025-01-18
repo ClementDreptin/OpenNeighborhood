@@ -1,5 +1,6 @@
 import ErrorPage from "@/components/error-page";
 import FileButton from "@/components/file-button";
+import FilesPageContextMenu from "@/components/files-page-context-menu";
 import { getFiles } from "@/lib/consoles";
 import type { PageProps } from "@/types/next";
 
@@ -23,10 +24,12 @@ export default async function FilesPage(props: PageProps) {
   }
 
   return (
-    <div className="grid grid-cols-autofill gap-4">
-      {files.map((file) => (
-        <FileButton key={file.name} file={file} />
-      ))}
-    </div>
+    <FilesPageContextMenu>
+      <div className="grid h-full auto-rows-min grid-cols-autofill gap-4">
+        {files.map((file) => (
+          <FileButton key={file.name} file={file} />
+        ))}
+      </div>
+    </FilesPageContextMenu>
   );
 }
