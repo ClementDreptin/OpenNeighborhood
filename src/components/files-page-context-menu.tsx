@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import axios from "axios";
+import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -12,7 +13,9 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogClose,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -22,6 +25,8 @@ interface FilesPageContextMenuProps {
   children: React.ReactNode;
 }
 
+const cancelUploadController = new AbortController();
+
 export default function FilesPageContextMenu({
   children,
 }: FilesPageContextMenuProps) {
@@ -29,7 +34,7 @@ export default function FilesPageContextMenu({
   const { ipAddress } = useParams();
   const searchParams = useSearchParams();
   const dirPath = searchParams.get("path") ?? "";
-  const [modalOpen, setModalOpen] = React.useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = React.useState(false);
   const [fileName, setFileName] = React.useState("");
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [errorMessage, setErrorMessage] = React.useState("");
@@ -50,7 +55,7 @@ export default function FilesPageContextMenu({
       formData.set("dirPath", dirPath);
       formData.set("file", file);
 
-      setModalOpen(true);
+      setUploadModalOpen(true);
       setErrorMessage("");
       setFileName(file.name);
 
@@ -62,12 +67,13 @@ export default function FilesPageContextMenu({
 
           setUploadProgress(Math.round((loaded * 100) / total));
         },
+        signal: cancelUploadController.signal,
       };
 
       axios
         .post(`${pathname}/upload`, formData, axiosConfig)
         .then(() => {
-          setModalOpen(false);
+          setUploadModalOpen(false);
         })
         .catch((error: unknown) => {
           if (error instanceof Error) {
@@ -77,8 +83,12 @@ export default function FilesPageContextMenu({
     });
   };
 
+  const cancelUpload = () => {
+    cancelUploadController.abort();
+  };
+
   return (
-    <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+    <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
       <ContextMenu>
         <ContextMenuTrigger>{children}</ContextMenuTrigger>
 
@@ -104,6 +114,12 @@ export default function FilesPageContextMenu({
             {errorMessage}
           </p>
         ) : null}
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button onClick={cancelUpload}>Cancel</Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
