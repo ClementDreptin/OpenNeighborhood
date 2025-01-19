@@ -1,7 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +35,7 @@ const cancelUploadController = new AbortController();
 export default function FilesPageContextMenu({
   children,
 }: FilesPageContextMenuProps) {
+  const router = useRouter();
   const pathname = usePathname();
   const { ipAddress } = useParams();
   const searchParams = useSearchParams();
@@ -38,6 +44,7 @@ export default function FilesPageContextMenu({
   const [fileName, setFileName] = React.useState("");
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [errorMessage, setErrorMessage] = React.useState("");
+  const [, startTransition] = React.useTransition();
 
   const handleUpload = () => {
     const fileInput = document.createElement("input");
@@ -74,6 +81,9 @@ export default function FilesPageContextMenu({
         .post(`${pathname}/upload`, formData, axiosConfig)
         .then(() => {
           setUploadModalOpen(false);
+          startTransition(() => {
+            router.refresh();
+          });
         })
         .catch((error: unknown) => {
           if (error instanceof Error) {
