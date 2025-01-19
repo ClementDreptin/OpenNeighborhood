@@ -8,7 +8,6 @@ import {
   useSearchParams,
 } from "next/navigation";
 import axios from "axios";
-import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -18,9 +17,7 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogClose,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -29,8 +26,6 @@ import { Progress } from "@/components/ui/progress";
 interface FilesPageContextMenuProps {
   children: React.ReactNode;
 }
-
-const cancelUploadController = new AbortController();
 
 export default function FilesPageContextMenu({
   children,
@@ -74,7 +69,6 @@ export default function FilesPageContextMenu({
 
           setUploadProgress(Math.round((loaded * 100) / total));
         },
-        signal: cancelUploadController.signal,
       };
 
       axios
@@ -91,10 +85,6 @@ export default function FilesPageContextMenu({
           }
         });
     });
-  };
-
-  const cancelUpload = () => {
-    cancelUploadController.abort();
   };
 
   return (
@@ -124,12 +114,6 @@ export default function FilesPageContextMenu({
             {errorMessage}
           </p>
         ) : null}
-
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button onClick={cancelUpload}>Cancel</Button>
-          </DialogClose>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
