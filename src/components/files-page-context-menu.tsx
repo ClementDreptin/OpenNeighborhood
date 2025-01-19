@@ -7,8 +7,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import axios from "axios";
-import { Button } from "@/components/ui/button";
+import { ReloadIcon } from "@radix-ui/react-icons";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -18,19 +17,14 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogClose,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
 
 interface FilesPageContextMenuProps {
   children: React.ReactNode;
 }
-
-const cancelUploadController = new AbortController();
 
 export default function FilesPageContextMenu({
   children,
@@ -42,9 +36,9 @@ export default function FilesPageContextMenu({
   const dirPath = searchParams.get("path") ?? "";
   const [uploadModalOpen, setUploadModalOpen] = React.useState(false);
   const [fileName, setFileName] = React.useState("");
-  const [uploadProgress, setUploadProgress] = React.useState(0);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [, startTransition] = React.useTransition();
+  const isError = errorMessage !== "";
 
   const handleUpload = () => {
     const fileInput = document.createElement("input");
@@ -66,20 +60,17 @@ export default function FilesPageContextMenu({
       setErrorMessage("");
       setFileName(file.name);
 
-      const axiosConfig: Parameters<typeof axios.post>[2] = {
-        onUploadProgress: ({ loaded, total }) => {
-          if (total == null) {
-            return;
+      fetch(`${pathname}/upload`, {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(
+              `Request failed with status code ${response.status.toString()}.`,
+            );
           }
 
-          setUploadProgress(Math.round((loaded * 100) / total));
-        },
-        signal: cancelUploadController.signal,
-      };
-
-      axios
-        .post(`${pathname}/upload`, formData, axiosConfig)
-        .then(() => {
           setUploadModalOpen(false);
           startTransition(() => {
             router.refresh();
@@ -93,8 +84,8 @@ export default function FilesPageContextMenu({
     });
   };
 
-  const cancelUpload = () => {
-    cancelUploadController.abort();
+  const preventClose = (event: Event) => {
+    event.preventDefault();
   };
 
   return (
@@ -109,27 +100,32 @@ export default function FilesPageContextMenu({
         </ContextMenuContent>
       </ContextMenu>
 
-      <DialogContent>
+      <DialogContent
+        displayCloseButton={isError}
+        onInteractOutside={!isError ? preventClose : undefined}
+        onEscapeKeyDown={!isError ? preventClose : undefined}
+        onOpenAutoFocus={preventClose}
+      >
         <DialogHeader>
           <DialogTitle>Upload progress</DialogTitle>
           <DialogDescription>
-            {fileName} is being uploaded to {dirPath}, please wait...
+            {isError
+              ? `Uploading ${fileName} to ${dirPath} failed with the following error.`
+              : `${fileName} is being uploaded to ${dirPath}, please wait...`}
           </DialogDescription>
         </DialogHeader>
 
-        <Progress value={uploadProgress} />
+        {!isError && (
+          <div className="m-auto">
+            <ReloadIcon className="h-12 w-12 animate-spin text-muted-foreground" />
+          </div>
+        )}
 
-        {errorMessage !== "" ? (
+        {isError ? (
           <p role="alert" className="text-destructive">
             {errorMessage}
           </p>
         ) : null}
-
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button onClick={cancelUpload}>Cancel</Button>
-          </DialogClose>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
