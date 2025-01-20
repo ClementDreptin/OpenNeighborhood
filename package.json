@@ -6,6 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build && cp -r .next/static .next/standalone/.next/static",
     "start": "node .next/standalone/server.js",
+    "format:check": "npx prettier --check .",
     "lint": "next lint"
   },
   "dependencies": {
