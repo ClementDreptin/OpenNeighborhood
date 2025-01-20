@@ -8,6 +8,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { ReloadIcon } from "@radix-ui/react-icons";
+import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -16,11 +17,14 @@ import {
 } from "@/components/ui/context-menu";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useFilesContext } from "@/contexts/FilesContext";
 
 interface FilesPageContextMenuProps {
   children: React.ReactNode;
@@ -34,13 +38,16 @@ export default function FilesPageContextMenu({
   const { ipAddress } = useParams();
   const searchParams = useSearchParams();
   const dirPath = searchParams.get("path") ?? "";
+  const { files } = useFilesContext();
   const [uploadModalOpen, setUploadModalOpen] = React.useState(false);
-  const [fileName, setFileName] = React.useState("");
+  const [confirmUploadModalOpen, setConfirmUploadModalOpen] =
+    React.useState(false);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [, startTransition] = React.useTransition();
   const isError = errorMessage !== "";
 
-  const handleUpload = () => {
+  const pickFile = () => {
     const fileInput = document.createElement("input");
     fileInput.setAttribute("type", "file");
     fileInput.click();
@@ -56,32 +63,61 @@ export default function FilesPageContextMenu({
       formData.set("dirPath", dirPath);
       formData.set("file", file);
 
-      setUploadModalOpen(true);
       setErrorMessage("");
-      setFileName(file.name);
+      setSelectedFile(file);
 
-      fetch(`${pathname}/upload`, {
-        method: "POST",
-        body: formData,
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(
-              `Request failed with status code ${response.status.toString()}.`,
-            );
-          }
+      const fileAlreadyExists = files.some(
+        // Xbox file names are not case sensitive, just like Windows...
+        ({ name }) => name.toLowerCase() === file.name.toLocaleLowerCase(),
+      );
 
-          setUploadModalOpen(false);
-          startTransition(() => {
-            router.refresh();
-          });
-        })
-        .catch((error: unknown) => {
-          if (error instanceof Error) {
-            setErrorMessage(error.message);
-          }
-        });
+      if (fileAlreadyExists) {
+        setConfirmUploadModalOpen(true);
+        return;
+      }
+
+      proceedWithUpload(formData);
     });
+  };
+
+  const confirmUpload = () => {
+    if (selectedFile == null) {
+      throw new Error("'selectedFile' is null, this should not happen.");
+    }
+
+    const formData = new FormData();
+    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("dirPath", dirPath);
+    formData.set("file", selectedFile);
+
+    setConfirmUploadModalOpen(false);
+    proceedWithUpload(formData);
+  };
+
+  const proceedWithUpload = (formData: FormData) => {
+    setUploadModalOpen(true);
+
+    fetch(`${pathname}/upload`, {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Request failed with status code ${response.status.toString()}.`,
+          );
+        }
+
+        setUploadModalOpen(false);
+        startTransition(() => {
+          router.refresh();
+        });
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error) {
+          setErrorMessage(error.message);
+        }
+      });
   };
 
   const preventClose = (event: Event) => {
@@ -89,44 +125,78 @@ export default function FilesPageContextMenu({
   };
 
   return (
-    <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
+    <>
       <ContextMenu>
         <ContextMenuTrigger>{children}</ContextMenuTrigger>
 
         <ContextMenuContent>
-          <ContextMenuItem inset onClick={handleUpload}>
+          <ContextMenuItem inset onClick={pickFile}>
             Upload file
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
-      <DialogContent
-        displayCloseButton={isError}
-        onInteractOutside={!isError ? preventClose : undefined}
-        onEscapeKeyDown={!isError ? preventClose : undefined}
-        onOpenAutoFocus={preventClose}
+      {/* Upload progress modal */}
+      <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
+        <DialogContent
+          displayCloseButton={isError}
+          onInteractOutside={!isError ? preventClose : undefined}
+          onEscapeKeyDown={!isError ? preventClose : undefined}
+          onOpenAutoFocus={preventClose}
+        >
+          <DialogHeader>
+            <DialogTitle>Upload progress</DialogTitle>
+            <DialogDescription>
+              {isError ? (
+                <>
+                  Uploading <strong>{selectedFile?.name}</strong> to{" "}
+                  <strong>{dirPath}</strong> failed with the following error.
+                </>
+              ) : (
+                <>
+                  <strong>{selectedFile?.name}</strong> is being uploaded to{" "}
+                  <strong>{dirPath}</strong>, please wait...
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!isError && (
+            <div className="m-auto">
+              <ReloadIcon className="h-12 w-12 animate-spin text-muted-foreground" />
+            </div>
+          )}
+
+          {isError ? (
+            <p role="alert" className="text-destructive">
+              {errorMessage}
+            </p>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm upload modal */}
+      <Dialog
+        open={confirmUploadModalOpen}
+        onOpenChange={setConfirmUploadModalOpen}
       >
-        <DialogHeader>
-          <DialogTitle>Upload progress</DialogTitle>
-          <DialogDescription>
-            {isError
-              ? `Uploading ${fileName} to ${dirPath} failed with the following error.`
-              : `${fileName} is being uploaded to ${dirPath}, please wait...`}
-          </DialogDescription>
-        </DialogHeader>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmation</DialogTitle>
+            <DialogDescription>
+              <strong>{selectedFile?.name}</strong> already exists, would you
+              like to replace the existing file?
+            </DialogDescription>
 
-        {!isError && (
-          <div className="m-auto">
-            <ReloadIcon className="h-12 w-12 animate-spin text-muted-foreground" />
-          </div>
-        )}
-
-        {isError ? (
-          <p role="alert" className="text-destructive">
-            {errorMessage}
-          </p>
-        ) : null}
-      </DialogContent>
-    </Dialog>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="secondary">No</Button>
+              </DialogClose>
+              <Button onClick={confirmUpload}>Yes</Button>
+            </DialogFooter>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
