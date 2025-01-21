@@ -63,18 +63,33 @@ export async function launchXexAction(formData: FormData) {
   await launchXex(ipAddress, filePath);
 }
 
-export async function deleteFileAction(formData: FormData) {
+export async function deleteFileAction(_: unknown, formData: FormData) {
   const ipAddress = formData.get("ipAddress");
   if (typeof ipAddress !== "string") {
-    throw new Error("ipAddress needs to be of type string.");
+    return {
+      success: false,
+      error: new Error("ipAddress needs to be of type string."),
+    };
   }
 
   const filePath = formData.get("filePath");
   if (typeof filePath !== "string") {
-    throw new Error("filePath needs to be of type string.");
+    return {
+      success: false,
+      error: new Error("filePath needs to be of type string."),
+    };
   }
 
-  await deleteFile(ipAddress, filePath);
+  try {
+    await deleteFile(ipAddress, filePath);
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err : new Error("Something went wrong."),
+    };
+  }
 
   revalidatePath(`/${ipAddress}/files`);
+
+  return { success: true };
 }

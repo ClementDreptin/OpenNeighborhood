@@ -48,6 +48,11 @@ export default function FileButton({ file }: FileButtonProps) {
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] =
     React.useState(false);
+  const [formState, formAction, isPending] = React.useActionState(
+    deleteFileAction,
+    null,
+  );
+  const isError = formState?.success === false && !isPending;
 
   const icon = file.isDirectory
     ? (directoryIcon as StaticImageData)
@@ -104,15 +109,7 @@ export default function FileButton({ file }: FileButtonProps) {
     formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
     formData.set("filePath", fullPath);
 
-    deleteFileAction(formData)
-      .then(() => {
-        setConfirmDeleteModalOpen(false);
-      })
-      .catch((error: unknown) => {
-        if (error instanceof Error) {
-          displayErrorToast(error.message);
-        }
-      });
+    formAction(formData);
   };
 
   const openPropertiesModal = () => {
@@ -122,6 +119,12 @@ export default function FileButton({ file }: FileButtonProps) {
   const openConfirmDeleteModal = () => {
     setConfirmDeleteModalOpen(true);
   };
+
+  React.useEffect(() => {
+    if (formState?.success === true) {
+      setConfirmDeleteModalOpen(false);
+    }
+  }, [formState]);
 
   return (
     <>
@@ -161,14 +164,24 @@ export default function FileButton({ file }: FileButtonProps) {
               Are you sure you want to delete <strong>{file.name}</strong>
               {file.isDirectory ? " and all of its contents" : ""}?
             </DialogDescription>
+          </DialogHeader>
+
+          <form action={handleDelete}>
+            {isError ? (
+              <p role="alert" className="text-destructive">
+                {formState.error?.message}
+              </p>
+            ) : null}
 
             <DialogFooter>
               <DialogClose asChild>
                 <Button variant="secondary">No</Button>
               </DialogClose>
-              <Button onClick={handleDelete}>Yes</Button>
+              <Button type="submit" disabled={isPending}>
+                Yes
+              </Button>
             </DialogFooter>
-          </DialogHeader>
+          </form>
         </DialogContent>
       </Dialog>
 
