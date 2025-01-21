@@ -27,7 +27,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { deleteFileAction, launchXexAction } from "@/lib/actions";
@@ -46,6 +45,9 @@ export default function FileButton({ file }: FileButtonProps) {
   const parentPath = searchParams.get("path") ?? "";
   const fullPath =
     (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
+  const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
+  const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] =
+    React.useState(false);
 
   const icon = file.isDirectory
     ? (directoryIcon as StaticImageData)
@@ -102,15 +104,27 @@ export default function FileButton({ file }: FileButtonProps) {
     formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
     formData.set("filePath", fullPath);
 
-    deleteFileAction(formData).catch((error: unknown) => {
-      if (error instanceof Error) {
-        displayErrorToast(error.message);
-      }
-    });
+    deleteFileAction(formData)
+      .then(() => {
+        setConfirmDeleteModalOpen(false);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error) {
+          displayErrorToast(error.message);
+        }
+      });
+  };
+
+  const openPropertiesModal = () => {
+    setPropertiesModalOpen(true);
+  };
+
+  const openConfirmDeleteModal = () => {
+    setConfirmDeleteModalOpen(true);
   };
 
   return (
-    <Dialog>
+    <>
       <ContextMenu>
         <ContextMenuTrigger>
           <IconButton title={file.name} iconSrc={icon} onClick={handleClick}>
@@ -126,59 +140,83 @@ export default function FileButton({ file }: FileButtonProps) {
           <ContextMenuItem inset onClick={handleDownload}>
             Download
           </ContextMenuItem>
-          <ContextMenuItem inset onClick={handleDelete}>
+          <ContextMenuItem inset onClick={openConfirmDeleteModal}>
             Delete
           </ContextMenuItem>
           <Separator />
-          <DialogTrigger asChild>
-            <ContextMenuItem inset>Properties</ContextMenuItem>
-          </DialogTrigger>
+          <ContextMenuItem inset onClick={openPropertiesModal}>
+            Properties
+          </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{file.name}</DialogTitle>
-          <DialogDescription>Properties of {file.name}</DialogDescription>
-        </DialogHeader>
+      <Dialog
+        open={confirmDeleteModalOpen}
+        onOpenChange={setConfirmDeleteModalOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>{file.name}</strong>
+              {file.isDirectory ? " and all of its contents" : ""}?
+            </DialogDescription>
 
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
-          <div>Name:</div>
-          <div className="col-span-3">{file.name}</div>
-        </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="secondary">No</Button>
+              </DialogClose>
+              <Button onClick={handleDelete}>Yes</Button>
+            </DialogFooter>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
-        <Separator />
+      <Dialog open={propertiesModalOpen} onOpenChange={setPropertiesModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{file.name}</DialogTitle>
+            <DialogDescription>Properties of {file.name}</DialogDescription>
+          </DialogHeader>
 
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
-          <div>Location:</div>
-          <div className="col-span-3">{parentPath}</div>
-          {!file.isDirectory && (
-            <>
-              <div>Size:</div>
-              <div className="col-span-3">{bytesToSize(file.size)}</div>
-            </>
-          )}
-        </div>
-
-        <Separator />
-
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
-          <div>Created:</div>
-          <div className="col-span-3">
-            {unixTimeToString(file.creationDate)}
+          <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+            <div>Name:</div>
+            <div className="col-span-3">{file.name}</div>
           </div>
-          <div>Modified:</div>
-          <div className="col-span-3">
-            {unixTimeToString(file.modificationDate)}
-          </div>
-        </div>
 
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button>Close</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <Separator />
+
+          <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+            <div>Location:</div>
+            <div className="col-span-3">{parentPath}</div>
+            {!file.isDirectory && (
+              <>
+                <div>Size:</div>
+                <div className="col-span-3">{bytesToSize(file.size)}</div>
+              </>
+            )}
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+            <div>Created:</div>
+            <div className="col-span-3">
+              {unixTimeToString(file.creationDate)}
+            </div>
+            <div>Modified:</div>
+            <div className="col-span-3">
+              {unixTimeToString(file.modificationDate)}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button>Close</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
