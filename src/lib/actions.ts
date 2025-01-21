@@ -1,7 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createConsole, deleteConsole, launchXex } from "./consoles";
+import {
+  createConsole,
+  deleteConsole,
+  deleteFile,
+  launchXex,
+} from "./consoles";
 import "server-only";
 
 export async function createConsoleAction(_: unknown, formData: FormData) {
@@ -44,7 +49,21 @@ export async function deleteConsoleAction(_: unknown, formData: FormData) {
   return { success: true };
 }
 
-export async function launchXexAction(_: unknown, formData: FormData) {
+export async function launchXexAction(formData: FormData) {
+  const ipAddress = formData.get("ipAddress");
+  if (typeof ipAddress !== "string") {
+    throw new Error("ipAddress needs to be of type string.");
+  }
+
+  const filePath = formData.get("filePath");
+  if (typeof filePath !== "string") {
+    throw new Error("filePath needs to be of type string.");
+  }
+
+  await launchXex(ipAddress, filePath);
+}
+
+export async function deleteFileAction(_: unknown, formData: FormData) {
   const ipAddress = formData.get("ipAddress");
   if (typeof ipAddress !== "string") {
     return {
@@ -61,14 +80,18 @@ export async function launchXexAction(_: unknown, formData: FormData) {
     };
   }
 
+  const isDirectory = formData.get("isDirectory") === "true";
+
   try {
-    await launchXex(ipAddress, filePath);
+    await deleteFile(ipAddress, filePath, isDirectory);
   } catch (err) {
     return {
       success: false,
       error: err instanceof Error ? err : new Error("Something went wrong."),
     };
   }
+
+  revalidatePath(`/${ipAddress}/files`);
 
   return { success: true };
 }

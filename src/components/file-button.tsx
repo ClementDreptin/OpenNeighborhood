@@ -27,10 +27,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { launchXexAction } from "@/lib/actions";
+import { deleteFileAction, launchXexAction } from "@/lib/actions";
 import type { File } from "@/lib/consoles";
 import { bytesToSize, displayErrorToast, unixTimeToString } from "@/lib/utils";
 
@@ -46,6 +45,14 @@ export default function FileButton({ file }: FileButtonProps) {
   const parentPath = searchParams.get("path") ?? "";
   const fullPath =
     (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
+  const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
+  const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] =
+    React.useState(false);
+  const [formState, formAction, isPending] = React.useActionState(
+    deleteFileAction,
+    null,
+  );
+  const isError = formState?.success === false && !isPending;
 
   const icon = file.isDirectory
     ? (directoryIcon as StaticImageData)
@@ -53,8 +60,10 @@ export default function FileButton({ file }: FileButtonProps) {
       ? (xexIcon as StaticImageData)
       : (fileIcon as StaticImageData);
 
-  const openDirectory = () => {
-    router.push(`${pathname}?${new URLSearchParams({ path: fullPath })}`);
+  const handleClick = () => {
+    if (file.isDirectory) {
+      router.push(`${pathname}?${new URLSearchParams({ path: fullPath })}`);
+    }
   };
 
   const handleLaunch = () => {
@@ -62,7 +71,7 @@ export default function FileButton({ file }: FileButtonProps) {
     formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
     formData.set("filePath", fullPath);
 
-    launchXexAction(null, formData).catch((error: unknown) => {
+    launchXexAction(formData).catch((error: unknown) => {
       if (error instanceof Error) {
         displayErrorToast(error.message);
       }
@@ -71,7 +80,7 @@ export default function FileButton({ file }: FileButtonProps) {
 
   const handleDownload = () => {
     if (file.isDirectory) {
-      displayErrorToast("Not implemented");
+      displayErrorToast("Not implemented.");
       return;
     }
 
@@ -90,14 +99,31 @@ export default function FileButton({ file }: FileButtonProps) {
     link.click();
   };
 
-  const handleClick = () => {
-    if (file.isDirectory) {
-      openDirectory();
-    }
+  const handleDelete = () => {
+    const formData = new FormData();
+    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("filePath", fullPath);
+    formData.set("isDirectory", file.isDirectory.toString());
+
+    formAction(formData);
   };
 
+  const openPropertiesModal = () => {
+    setPropertiesModalOpen(true);
+  };
+
+  const openConfirmDeleteModal = () => {
+    setConfirmDeleteModalOpen(true);
+  };
+
+  React.useEffect(() => {
+    if (formState?.success === true) {
+      setConfirmDeleteModalOpen(false);
+    }
+  }, [formState]);
+
   return (
-    <Dialog>
+    <>
       <ContextMenu>
         <ContextMenuTrigger>
           <IconButton title={file.name} iconSrc={icon} onClick={handleClick}>
@@ -113,55 +139,93 @@ export default function FileButton({ file }: FileButtonProps) {
           <ContextMenuItem inset onClick={handleDownload}>
             Download
           </ContextMenuItem>
-          <DialogTrigger asChild>
-            <ContextMenuItem inset>Properties</ContextMenuItem>
-          </DialogTrigger>
+          <ContextMenuItem inset onClick={openConfirmDeleteModal}>
+            Delete
+          </ContextMenuItem>
+          <Separator />
+          <ContextMenuItem inset onClick={openPropertiesModal}>
+            Properties
+          </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{file.name}</DialogTitle>
-          <DialogDescription>Properties of {file.name}</DialogDescription>
-        </DialogHeader>
+      <Dialog
+        open={confirmDeleteModalOpen}
+        onOpenChange={setConfirmDeleteModalOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>{file.name}</strong>
+              {file.isDirectory ? " and all of its contents" : ""}?
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
-          <div>Name:</div>
-          <div className="col-span-3">{file.name}</div>
-        </div>
+          <form action={handleDelete}>
+            {isError ? (
+              <p role="alert" className="text-destructive">
+                {formState.error?.message}
+              </p>
+            ) : null}
 
-        <Separator />
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="secondary">No</Button>
+              </DialogClose>
+              <Button type="submit" disabled={isPending}>
+                Yes
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
-          <div>Location:</div>
-          <div className="col-span-3">{parentPath}</div>
-          {!file.isDirectory && (
-            <>
-              <div>Size:</div>
-              <div className="col-span-3">{bytesToSize(file.size)}</div>
-            </>
-          )}
-        </div>
+      <Dialog open={propertiesModalOpen} onOpenChange={setPropertiesModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{file.name}</DialogTitle>
+            <DialogDescription>Properties of {file.name}</DialogDescription>
+          </DialogHeader>
 
-        <Separator />
-
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
-          <div>Created:</div>
-          <div className="col-span-3">
-            {unixTimeToString(file.creationDate)}
+          <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+            <div>Name:</div>
+            <div className="col-span-3">{file.name}</div>
           </div>
-          <div>Modified:</div>
-          <div className="col-span-3">
-            {unixTimeToString(file.modificationDate)}
-          </div>
-        </div>
 
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button>Close</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <Separator />
+
+          <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+            <div>Location:</div>
+            <div className="col-span-3">{parentPath}</div>
+            {!file.isDirectory && (
+              <>
+                <div>Size:</div>
+                <div className="col-span-3">{bytesToSize(file.size)}</div>
+              </>
+            )}
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+            <div>Created:</div>
+            <div className="col-span-3">
+              {unixTimeToString(file.creationDate)}
+            </div>
+            <div>Modified:</div>
+            <div className="col-span-3">
+              {unixTimeToString(file.modificationDate)}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button>Close</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
