@@ -9,6 +9,10 @@ import {
 } from "./consoles";
 import "server-only";
 
+export type FormAction = (
+  formData: FormData,
+) => Promise<{ success: boolean; error?: Error }>;
+
 export async function createConsoleAction(_: unknown, formData: FormData) {
   const ipAddressBytes = Array.from(formData.values()).map(String);
 
@@ -26,7 +30,7 @@ export async function createConsoleAction(_: unknown, formData: FormData) {
   return { success: true };
 }
 
-export async function deleteConsoleAction(_: unknown, formData: FormData) {
+export const deleteConsoleAction: FormAction = async (formData) => {
   const ipAddress = formData.get("ipAddress");
   if (typeof ipAddress !== "string") {
     return {
@@ -47,7 +51,7 @@ export async function deleteConsoleAction(_: unknown, formData: FormData) {
   revalidatePath("/");
 
   return { success: true };
-}
+};
 
 export async function launchXexAction(formData: FormData) {
   const ipAddress = formData.get("ipAddress");
@@ -63,7 +67,7 @@ export async function launchXexAction(formData: FormData) {
   await launchXex(ipAddress, filePath);
 }
 
-export async function deleteFileAction(_: unknown, formData: FormData) {
+export const deleteFileAction: FormAction = async (formData) => {
   const ipAddress = formData.get("ipAddress");
   if (typeof ipAddress !== "string") {
     return {
@@ -94,4 +98,4 @@ export async function deleteFileAction(_: unknown, formData: FormData) {
   revalidatePath(`/${ipAddress}/files`);
 
   return { success: true };
-}
+};

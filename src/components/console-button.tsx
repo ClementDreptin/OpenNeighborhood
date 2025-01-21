@@ -3,24 +3,14 @@
 import * as React from "react";
 import type { StaticImageData } from "next/image";
 import { useRouter } from "next/navigation";
+import ConfirmModal from "./confirm-modal";
 import consoleIcon from "@/../public/console.svg";
-import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { IconButton } from "@/components/ui/icon-button";
 import { deleteConsoleAction } from "@/lib/actions";
 import type { Console } from "@/lib/consoles";
@@ -32,30 +22,24 @@ interface ConsoleButtonProps {
 export default function ConsoleButton({ console }: ConsoleButtonProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [formState, formAction, isPending] = React.useActionState(
-    deleteConsoleAction,
-    null,
-  );
-  const isError = formState?.success === false && !isPending;
 
   const handleClick = () => {
     router.push(`/${console.ipAddress}`);
   };
 
-  const formActionWrapper = () => {
+  const handleDelete = () => {
     const formData = new FormData();
     formData.set("ipAddress", console.ipAddress);
-    formAction(formData);
+
+    return deleteConsoleAction(formData);
   };
 
-  React.useEffect(() => {
-    if (formState?.success === true) {
-      setModalOpen(false);
-    }
-  }, [formState]);
+  const openModal = () => {
+    setModalOpen(true);
+  };
 
   return (
-    <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+    <>
       <ContextMenu>
         <ContextMenuTrigger>
           <IconButton
@@ -68,37 +52,19 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
           </IconButton>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <DialogTrigger asChild>
-            <ContextMenuItem inset>Delete</ContextMenuItem>
-          </DialogTrigger>
+          <ContextMenuItem inset onClick={openModal}>
+            Delete
+          </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Confirm</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete {console.ipAddress}?
-          </DialogDescription>
-        </DialogHeader>
-
-        <form action={formActionWrapper}>
-          {isError ? (
-            <p role="alert" className="text-destructive">
-              {formState.error?.message}
-            </p>
-          ) : null}
-
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="secondary">No</Button>
-            </DialogClose>
-            <Button type="submit" disabled={isPending}>
-              Yes
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <ConfirmModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        action={handleDelete}
+      >
+        Are you sure you want to delete {console.ipAddress}?
+      </ConfirmModal>
+    </>
   );
 }
