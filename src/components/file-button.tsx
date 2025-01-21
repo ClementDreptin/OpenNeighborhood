@@ -8,7 +8,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { DialogDescription } from "@radix-ui/react-dialog";
+import ConfirmModal from "./confirm-modal";
 import { IconButton } from "./ui/icon-button";
 import directoryIcon from "@/../public/directory.svg";
 import fileIcon from "@/../public/file.svg";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/context-menu";
 import {
   Dialog,
+  DialogDescription,
   DialogClose,
   DialogContent,
   DialogFooter,
@@ -48,11 +49,6 @@ export default function FileButton({ file }: FileButtonProps) {
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] =
     React.useState(false);
-  const [formState, formAction, isPending] = React.useActionState(
-    deleteFileAction,
-    null,
-  );
-  const isError = formState?.success === false && !isPending;
 
   const icon = file.isDirectory
     ? (directoryIcon as StaticImageData)
@@ -105,7 +101,7 @@ export default function FileButton({ file }: FileButtonProps) {
     formData.set("filePath", fullPath);
     formData.set("isDirectory", file.isDirectory.toString());
 
-    formAction(formData);
+    return deleteFileAction(formData);
   };
 
   const openPropertiesModal = () => {
@@ -115,12 +111,6 @@ export default function FileButton({ file }: FileButtonProps) {
   const openConfirmDeleteModal = () => {
     setConfirmDeleteModalOpen(true);
   };
-
-  React.useEffect(() => {
-    if (formState?.success === true) {
-      setConfirmDeleteModalOpen(false);
-    }
-  }, [formState]);
 
   return (
     <>
@@ -149,37 +139,14 @@ export default function FileButton({ file }: FileButtonProps) {
         </ContextMenuContent>
       </ContextMenu>
 
-      <Dialog
+      <ConfirmModal
         open={confirmDeleteModalOpen}
         onOpenChange={setConfirmDeleteModalOpen}
+        action={handleDelete}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmation</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete <strong>{file.name}</strong>
-              {file.isDirectory ? " and all of its contents" : ""}?
-            </DialogDescription>
-          </DialogHeader>
-
-          <form action={handleDelete}>
-            {isError ? (
-              <p role="alert" className="text-destructive">
-                {formState.error?.message}
-              </p>
-            ) : null}
-
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="secondary">No</Button>
-              </DialogClose>
-              <Button type="submit" disabled={isPending}>
-                Yes
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+        Are you sure you want to delete <strong>{file.name}</strong>
+        {file.isDirectory ? " and all of its contents" : ""}?
+      </ConfirmModal>
 
       <Dialog open={propertiesModalOpen} onOpenChange={setPropertiesModalOpen}>
         <DialogContent>

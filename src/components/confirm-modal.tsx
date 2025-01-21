@@ -9,12 +9,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ActionResult } from "@/lib/actions";
+import type { FormAction } from "@/lib/actions";
 
 interface ConfirmModalProps {
   open: React.ComponentProps<typeof Dialog>["open"];
   onOpenChange: React.ComponentProps<typeof Dialog>["onOpenChange"];
-  action: (formData: FormData) => Promise<ActionResult>;
+  action: FormAction;
   children: React.ReactNode;
 }
 

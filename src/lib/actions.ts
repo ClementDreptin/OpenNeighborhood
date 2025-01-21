@@ -9,15 +9,11 @@ import {
 } from "./consoles";
 import "server-only";
 
-export interface ActionResult {
-  success: boolean;
-  error?: Error;
-}
-
-export async function createConsoleAction(
-  _: unknown,
+export type FormAction = (
   formData: FormData,
-): Promise<ActionResult> {
+) => Promise<{ success: boolean; error?: Error }>;
+
+export async function createConsoleAction(_: unknown, formData: FormData) {
   const ipAddressBytes = Array.from(formData.values()).map(String);
 
   try {
@@ -34,9 +30,7 @@ export async function createConsoleAction(
   return { success: true };
 }
 
-export async function deleteConsoleAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export const deleteConsoleAction: FormAction = async (formData) => {
   const ipAddress = formData.get("ipAddress");
   if (typeof ipAddress !== "string") {
     return {
@@ -57,7 +51,7 @@ export async function deleteConsoleAction(
   revalidatePath("/");
 
   return { success: true };
-}
+};
 
 export async function launchXexAction(formData: FormData) {
   const ipAddress = formData.get("ipAddress");
@@ -73,10 +67,7 @@ export async function launchXexAction(formData: FormData) {
   await launchXex(ipAddress, filePath);
 }
 
-export async function deleteFileAction(
-  _: unknown,
-  formData: FormData,
-): Promise<ActionResult> {
+export const deleteFileAction: FormAction = async (formData) => {
   const ipAddress = formData.get("ipAddress");
   if (typeof ipAddress !== "string") {
     return {
@@ -107,4 +98,4 @@ export async function deleteFileAction(
   revalidatePath(`/${ipAddress}/files`);
 
   return { success: true };
-}
+};
