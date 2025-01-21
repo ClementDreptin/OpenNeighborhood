@@ -80,8 +80,10 @@ export async function deleteFileAction(_: unknown, formData: FormData) {
     };
   }
 
+  const isDirectory = formData.get("isDirectory") === "true";
+
   try {
-    await deleteFile(ipAddress, filePath);
+    await deleteFile(ipAddress, filePath, isDirectory);
   } catch (err) {
     return {
       success: false,

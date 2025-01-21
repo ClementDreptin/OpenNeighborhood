@@ -100,14 +100,10 @@ export default function FileButton({ file }: FileButtonProps) {
   };
 
   const handleDelete = () => {
-    if (file.isDirectory) {
-      displayErrorToast("Not implemented.");
-      return;
-    }
-
     const formData = new FormData();
     formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
     formData.set("filePath", fullPath);
+    formData.set("isDirectory", file.isDirectory.toString());
 
     formAction(formData);
   };

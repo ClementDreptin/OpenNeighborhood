@@ -263,12 +263,32 @@ export async function uploadFile(
   );
 }
 
-export async function deleteFile(ipAddress: string, filePath: string) {
+export async function deleteFile(
+  ipAddress: string,
+  filePath: string,
+  isDirectory: boolean,
+) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
   }
 
-  await xbdm.sendCommand(ipAddress, "Ok", `delete name="${filePath}"`);
+  if (isDirectory) {
+    const files = await getFiles(ipAddress, filePath);
+
+    for (const file of files) {
+      await deleteFile(
+        ipAddress,
+        path.win32.join(filePath, file.name),
+        file.isDirectory,
+      );
+    }
+  }
+
+  await xbdm.sendCommand(
+    ipAddress,
+    "Ok",
+    `delete name="${filePath}"${isDirectory ? " dir" : ""}`,
+  );
 }
 
 export async function launchXex(ipAddress: string, filePath: string) {
