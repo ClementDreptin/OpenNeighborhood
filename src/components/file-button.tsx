@@ -9,7 +9,6 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { toast } from "sonner";
 import { IconButton } from "./ui/icon-button";
 import directoryIcon from "@/../public/directory.svg";
 import fileIcon from "@/../public/file.svg";
@@ -33,7 +32,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { launchXexAction } from "@/lib/actions";
 import type { File } from "@/lib/consoles";
-import { bytesToSize, unixTimeToString } from "@/lib/utils";
+import { bytesToSize, displayErrorToast, unixTimeToString } from "@/lib/utils";
 
 interface FileButtonProps {
   file: File;
@@ -65,14 +64,14 @@ export default function FileButton({ file }: FileButtonProps) {
 
     launchXexAction(null, formData).catch((error: unknown) => {
       if (error instanceof Error) {
-        displayErrorToast(error);
+        displayErrorToast(error.message);
       }
     });
   };
 
   const handleDownload = () => {
     if (file.isDirectory) {
-      displayErrorToast(new Error("Not implemented"));
+      displayErrorToast("Not implemented");
       return;
     }
 
@@ -165,17 +164,4 @@ export default function FileButton({ file }: FileButtonProps) {
       </DialogContent>
     </Dialog>
   );
-}
-
-function displayErrorToast(error: Error) {
-  toast.error(error.message, {
-    richColors: true,
-    action: {
-      label: "Dismiss",
-      // I don't know why onClick is required since clicking the button
-      // will close the toast even if onClick doesn't do anything, whatever...
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onClick: () => {},
-    },
-  });
 }

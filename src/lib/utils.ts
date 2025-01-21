@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -36,4 +37,17 @@ export function unixTimeToString(time: number) {
 
 export function isValidIpv4(ipAddress: string) {
   return /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/.test(ipAddress);
+}
+
+export function displayErrorToast(errorMessage: string) {
+  toast.error(errorMessage, {
+    richColors: true,
+    action: {
+      label: "Dismiss",
+      // I don't know why onClick is required since clicking the button
+      // will close the toast even if onClick doesn't do anything, whatever...
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      onClick: () => {},
+    },
+  });
 }
