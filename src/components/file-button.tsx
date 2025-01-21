@@ -30,7 +30,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { launchXexAction } from "@/lib/actions";
+import { deleteFileAction, launchXexAction } from "@/lib/actions";
 import type { File } from "@/lib/consoles";
 import { bytesToSize, displayErrorToast, unixTimeToString } from "@/lib/utils";
 
@@ -53,8 +53,10 @@ export default function FileButton({ file }: FileButtonProps) {
       ? (xexIcon as StaticImageData)
       : (fileIcon as StaticImageData);
 
-  const openDirectory = () => {
-    router.push(`${pathname}?${new URLSearchParams({ path: fullPath })}`);
+  const handleClick = () => {
+    if (file.isDirectory) {
+      router.push(`${pathname}?${new URLSearchParams({ path: fullPath })}`);
+    }
   };
 
   const handleLaunch = () => {
@@ -62,7 +64,7 @@ export default function FileButton({ file }: FileButtonProps) {
     formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
     formData.set("filePath", fullPath);
 
-    launchXexAction(null, formData).catch((error: unknown) => {
+    launchXexAction(formData).catch((error: unknown) => {
       if (error instanceof Error) {
         displayErrorToast(error.message);
       }
@@ -71,7 +73,7 @@ export default function FileButton({ file }: FileButtonProps) {
 
   const handleDownload = () => {
     if (file.isDirectory) {
-      displayErrorToast("Not implemented");
+      displayErrorToast("Not implemented.");
       return;
     }
 
@@ -90,10 +92,21 @@ export default function FileButton({ file }: FileButtonProps) {
     link.click();
   };
 
-  const handleClick = () => {
+  const handleDelete = () => {
     if (file.isDirectory) {
-      openDirectory();
+      displayErrorToast("Not implemented.");
+      return;
     }
+
+    const formData = new FormData();
+    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("filePath", fullPath);
+
+    deleteFileAction(formData).catch((error: unknown) => {
+      if (error instanceof Error) {
+        displayErrorToast(error.message);
+      }
+    });
   };
 
   return (
@@ -113,6 +126,10 @@ export default function FileButton({ file }: FileButtonProps) {
           <ContextMenuItem inset onClick={handleDownload}>
             Download
           </ContextMenuItem>
+          <ContextMenuItem inset onClick={handleDelete}>
+            Delete
+          </ContextMenuItem>
+          <Separator />
           <DialogTrigger asChild>
             <ContextMenuItem inset>Properties</ContextMenuItem>
           </DialogTrigger>

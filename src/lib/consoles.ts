@@ -263,6 +263,14 @@ export async function uploadFile(
   );
 }
 
+export async function deleteFile(ipAddress: string, filePath: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  await xbdm.sendCommand(ipAddress, "Ok", `delete name="${filePath}"`);
+}
+
 export async function launchXex(ipAddress: string, filePath: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
