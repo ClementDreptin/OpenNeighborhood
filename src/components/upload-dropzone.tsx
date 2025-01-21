@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useDropzone, type FileWithPath } from "react-dropzone";
 import {
   useParams,
   usePathname,
@@ -9,12 +10,6 @@ import {
 } from "next/navigation";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import {
   Dialog,
   DialogClose,
@@ -25,59 +20,65 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useFilesContext } from "@/contexts/FilesContext";
+import { displayErrorToast } from "@/lib/utils";
 
-interface FilesPageContextMenuProps {
+interface UploadDropzoneProps {
   children: React.ReactNode;
 }
 
-export default function FilesPageContextMenu({
-  children,
-}: FilesPageContextMenuProps) {
+export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { ipAddress } = useParams();
   const searchParams = useSearchParams();
   const dirPath = searchParams.get("path") ?? "";
   const { files } = useFilesContext();
-  const [uploadModalOpen, setUploadModalOpen] = React.useState(false);
-  const [confirmUploadModalOpen, setConfirmUploadModalOpen] =
-    React.useState(false);
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [, startTransition] = React.useTransition();
   const isError = errorMessage !== "";
 
-  const pickFile = () => {
-    const fileInput = document.createElement("input");
-    fileInput.setAttribute("type", "file");
-    fileInput.click();
+  const onDrop = (acceptedFiles: FileWithPath[]) => {
+    if (acceptedFiles.length === 0) {
+      return;
+    }
 
-    fileInput.addEventListener("change", () => {
-      const file = fileInput.files?.[0];
-      if (file == null) {
-        return;
-      }
+    const containsDirectory = acceptedFiles.some(
+      (file) => file.path?.indexOf("/") !== file.path?.lastIndexOf("/"),
+    );
+    if (containsDirectory) {
+      displayErrorToast("Uploading a directory isn't supported yet.");
+      return;
+    }
 
-      const formData = new FormData();
-      formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
-      formData.set("dirPath", dirPath);
-      formData.set("file", file);
+    if (acceptedFiles.length > 1) {
+      displayErrorToast("Uploading multiple files isn't supported yet.");
+      return;
+    }
 
-      setErrorMessage("");
-      setSelectedFile(file);
+    const file = acceptedFiles[0];
 
-      const fileAlreadyExists = files.some(
-        // Xbox file names are not case sensitive, just like Windows...
-        ({ name }) => name.toLowerCase() === file.name.toLocaleLowerCase(),
-      );
+    const formData = new FormData();
+    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("dirPath", dirPath);
+    formData.set("file", file);
 
-      if (fileAlreadyExists) {
-        setConfirmUploadModalOpen(true);
-        return;
-      }
+    setErrorMessage("");
+    setSelectedFile(file);
 
-      proceedWithUpload(formData);
-    });
+    const fileAlreadyExists = files.some(
+      // Xbox file names are not case sensitive, just like Windows...
+      ({ name }) => name.toLowerCase() === file.name.toLocaleLowerCase(),
+    );
+
+    if (fileAlreadyExists) {
+      setConfirmModalOpen(true);
+      return;
+    }
+
+    proceedWithUpload(formData);
   };
 
   const confirmUpload = () => {
@@ -90,12 +91,12 @@ export default function FilesPageContextMenu({
     formData.set("dirPath", dirPath);
     formData.set("file", selectedFile);
 
-    setConfirmUploadModalOpen(false);
+    setConfirmModalOpen(false);
     proceedWithUpload(formData);
   };
 
   const proceedWithUpload = (formData: FormData) => {
-    setUploadModalOpen(true);
+    setModalOpen(true);
 
     fetch(`${pathname}/upload`, {
       method: "POST",
@@ -108,7 +109,7 @@ export default function FilesPageContextMenu({
           );
         }
 
-        setUploadModalOpen(false);
+        setModalOpen(false);
         startTransition(() => {
           router.refresh();
         });
@@ -124,20 +125,23 @@ export default function FilesPageContextMenu({
     event.preventDefault();
   };
 
-  return (
-    <>
-      <ContextMenu>
-        <ContextMenuTrigger>{children}</ContextMenuTrigger>
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    noClick: true,
+  });
 
-        <ContextMenuContent>
-          <ContextMenuItem inset onClick={pickFile}>
-            Upload file
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+  return (
+    <div {...getRootProps()} className="relative h-full">
+      <input {...getInputProps()} />
+
+      {isDragActive && (
+        <div className="absolute inset-0 rounded-md bg-gray-600 bg-opacity-50" />
+      )}
+
+      {children}
 
       {/* Upload progress modal */}
-      <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent
           displayCloseButton={isError}
           onInteractOutside={!isError ? preventClose : undefined}
@@ -176,10 +180,7 @@ export default function FilesPageContextMenu({
       </Dialog>
 
       {/* Confirm upload modal */}
-      <Dialog
-        open={confirmUploadModalOpen}
-        onOpenChange={setConfirmUploadModalOpen}
-      >
+      <Dialog open={confirmModalOpen} onOpenChange={setConfirmModalOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirmation</DialogTitle>
@@ -197,6 +198,6 @@ export default function FilesPageContextMenu({
           </DialogHeader>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
