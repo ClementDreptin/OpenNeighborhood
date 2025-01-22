@@ -118,7 +118,7 @@ export const createDirectoryAction: FormAction = async (formData) => {
     };
   }
 
-  const dirName = formData.get("dirName");
+  const dirName = formData.get("dirname");
   if (typeof dirName !== "string") {
     return {
       success: false,

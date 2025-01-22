@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { createDirectoryAction } from "@/lib/actions";
 
 const DIRNAME_INPUT_HELPER_TEXT_ID = "dirname-helper-text";
+const DIRNAME_INPUT_ID = "dirname";
 
 interface FilesPageContextMenuProps {
   children: React.ReactNode;
@@ -82,9 +83,14 @@ export default function FilesPageContextMenu({
             </DialogDescription>
           </DialogHeader>
 
-          <form action={handleCreateDirectory}>
+          <form className="flex flex-col gap-4" action={handleCreateDirectory}>
+            <label htmlFor={DIRNAME_INPUT_ID} className="sr-only">
+              New directory name
+            </label>
             <Input
-              name="dirName"
+              id={DIRNAME_INPUT_ID}
+              name={DIRNAME_INPUT_ID}
+              type="text"
               required
               error={isError}
               aria-describedby={
