@@ -104,6 +104,12 @@ export default function FileButton({ file }: FileButtonProps) {
     return deleteFileAction(formData);
   };
 
+  const handleKeyUp: React.KeyboardEventHandler = (event) => {
+    if (event.key === "Delete") {
+      openConfirmDeleteModal();
+    }
+  };
+
   const openPropertiesModal = () => {
     setPropertiesModalOpen(true);
   };
@@ -116,7 +122,12 @@ export default function FileButton({ file }: FileButtonProps) {
     <>
       <ContextMenu>
         <ContextMenuTrigger>
-          <IconButton title={file.name} iconSrc={icon} onClick={handleClick}>
+          <IconButton
+            title={file.name}
+            iconSrc={icon}
+            onClick={handleClick}
+            onKeyUp={handleKeyUp}
+          >
             {file.name}
           </IconButton>
         </ContextMenuTrigger>
