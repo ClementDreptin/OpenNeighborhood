@@ -291,6 +291,16 @@ export async function deleteFile(
   );
 }
 
+export async function createDirectory(
+  ipAddress: string,
+  dirName: string,
+  parentPath: string,
+) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+}
+
 export async function launchXex(ipAddress: string, filePath: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
