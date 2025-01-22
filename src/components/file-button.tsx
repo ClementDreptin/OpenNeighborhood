@@ -67,11 +67,17 @@ export default function FileButton({ file }: FileButtonProps) {
     formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
     formData.set("filePath", fullPath);
 
-    launchXexAction(formData).catch((error: unknown) => {
-      if (error instanceof Error) {
-        displayErrorToast(error.message);
-      }
-    });
+    launchXexAction(formData)
+      .then((result) => {
+        if (result.error != null) {
+          displayErrorToast(result.error.message);
+        }
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error) {
+          displayErrorToast(error.message);
+        }
+      });
   };
 
   const handleDownload = () => {
