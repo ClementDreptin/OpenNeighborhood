@@ -9,4 +9,4 @@ export const STATUS_CODES = {
   FileAlreadyExists: "410", // 410- file already exists
 } as const;
 
-export type Status = keyof typeof STATUS_CODES;
+export type Status = (typeof STATUS_CODES)[keyof typeof STATUS_CODES];

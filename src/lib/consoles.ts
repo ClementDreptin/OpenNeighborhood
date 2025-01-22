@@ -46,7 +46,11 @@ export async function createConsole(ipAddress: string) {
     throw new Error(`Console with IP address ${ipAddress} already exists.`);
   }
 
-  const consoleName = await xbdm.sendCommand(ipAddress, "Ok", "dbgname");
+  const consoleName = await xbdm.sendCommand(
+    ipAddress,
+    xbdm.STATUS_CODES.Ok,
+    "dbgname",
+  );
 
   consoles.push({ name: consoleName, ipAddress });
 
@@ -88,7 +92,7 @@ export async function getDrives(ipAddress: string) {
 
   const response = await xbdm.sendCommand(
     ipAddress,
-    "MultilineResponseFollows",
+    xbdm.STATUS_CODES.MultilineResponseFollows,
     "drivelist",
   );
   const lines = response !== "" ? response.split(xbdm.LINE_DELIMITER) : [];
@@ -98,7 +102,7 @@ export async function getDrives(ipAddress: string) {
     const driveName = xbdm.getStringProperty(line, "drivename");
     const driveFreeSpaceResponse = await xbdm.sendCommand(
       ipAddress,
-      "MultilineResponseFollows",
+      xbdm.STATUS_CODES.MultilineResponseFollows,
       `drivefreespace name="${driveName}:\\"`,
     );
 
@@ -167,7 +171,7 @@ export async function getFiles(ipAddress: string, dirPath: string) {
 
   const response = await xbdm.sendCommand(
     ipAddress,
-    "MultilineResponseFollows",
+    xbdm.STATUS_CODES.MultilineResponseFollows,
     `dirlist name="${dirPath}"`,
   );
   const lines = response !== "" ? response.split(xbdm.LINE_DELIMITER) : [];
@@ -225,11 +229,11 @@ export async function downloadFile(ipAddress: string, filePath: string) {
 
   const socket = await xbdm.connect(ipAddress);
   const reader = xbdm.createSocketReader(socket);
-  await xbdm.readHeader(reader, "Connected");
+  await xbdm.readHeader(reader, xbdm.STATUS_CODES.Connected);
 
   await xbdm.writeCommand(socket, `getfile name="${filePath}"`);
 
-  await xbdm.readHeader(reader, "BinaryResponseFollows");
+  await xbdm.readHeader(reader, xbdm.STATUS_CODES.BinaryResponseFollows);
 
   const sizeBuffer = await reader.readBytes(4);
   const size = sizeBuffer.readUInt32LE();
@@ -250,12 +254,12 @@ export async function uploadFile(
 
   const socket = await xbdm.connect(ipAddress);
   const reader = xbdm.createSocketReader(socket);
-  await xbdm.readHeader(reader, "Connected");
+  await xbdm.readHeader(reader, xbdm.STATUS_CODES.Connected);
 
   const filePath = path.win32.join(dirPath, file.name);
   const command = `sendfile name="${filePath}" length=0x${file.size.toString(16)}`;
   await xbdm.writeCommand(socket, command);
-  await xbdm.readHeader(reader, "SendBinaryData");
+  await xbdm.readHeader(reader, xbdm.STATUS_CODES.SendBinaryData);
 
   await pipeline(
     Readable.fromWeb(file.stream() as ReadableStream),
@@ -286,7 +290,7 @@ export async function deleteFile(
 
   await xbdm.sendCommand(
     ipAddress,
-    "Ok",
+    xbdm.STATUS_CODES.Ok,
     `delete name="${filePath}"${isDirectory ? " dir" : ""}`,
   );
 }
@@ -303,7 +307,11 @@ export async function createDirectory(
   const fullPath = path.win32.join(parentPath, dirName);
 
   try {
-    await xbdm.sendCommand(ipAddress, "Ok", `mkdir name="${fullPath}"`);
+    await xbdm.sendCommand(
+      ipAddress,
+      xbdm.STATUS_CODES.Ok,
+      `mkdir name="${fullPath}"`,
+    );
   } catch (err) {
     if (
       err instanceof Error &&
@@ -327,7 +335,7 @@ export async function launchXex(ipAddress: string, filePath: string) {
 
   await xbdm.sendCommand(
     ipAddress,
-    "Ok",
+    xbdm.STATUS_CODES.Ok,
     `magicboot title="${filePath}" directory="${parentPath}"`,
   );
 }
