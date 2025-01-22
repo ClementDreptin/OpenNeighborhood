@@ -92,9 +92,11 @@ export async function readHeader(reader: SocketReader, expect: Status) {
   const statusCodeString = line.substring(0, 3);
 
   if (statusCodeString !== STATUS_CODES[expect]) {
-    throw new Error(
+    const error = new Error(
       `Unexpected status code. Expected ${expect} but received ${line}.`,
     );
+    error.cause = statusCodeString;
+    throw error;
   }
 
   // The response prefix is "XXX- ", so 5 characters

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   createConsole,
+  createDirectory,
   deleteConsole,
   deleteFile,
   launchXex,
@@ -53,20 +54,6 @@ export const deleteConsoleAction: FormAction = async (formData) => {
   return { success: true };
 };
 
-export async function launchXexAction(formData: FormData) {
-  const ipAddress = formData.get("ipAddress");
-  if (typeof ipAddress !== "string") {
-    throw new Error("ipAddress needs to be of type string.");
-  }
-
-  const filePath = formData.get("filePath");
-  if (typeof filePath !== "string") {
-    throw new Error("filePath needs to be of type string.");
-  }
-
-  await launchXex(ipAddress, filePath);
-}
-
 export const deleteFileAction: FormAction = async (formData) => {
   const ipAddress = formData.get("ipAddress");
   if (typeof ipAddress !== "string") {
@@ -88,6 +75,59 @@ export const deleteFileAction: FormAction = async (formData) => {
 
   try {
     await deleteFile(ipAddress, filePath, isDirectory);
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err : new Error("Something went wrong."),
+    };
+  }
+
+  revalidatePath(`/${ipAddress}/files`);
+
+  return { success: true };
+};
+
+export async function launchXexAction(formData: FormData) {
+  const ipAddress = formData.get("ipAddress");
+  if (typeof ipAddress !== "string") {
+    throw new Error("ipAddress needs to be of type string.");
+  }
+
+  const filePath = formData.get("filePath");
+  if (typeof filePath !== "string") {
+    throw new Error("filePath needs to be of type string.");
+  }
+
+  await launchXex(ipAddress, filePath);
+}
+
+export const createDirectoryAction: FormAction = async (formData) => {
+  const ipAddress = formData.get("ipAddress");
+  if (typeof ipAddress !== "string") {
+    return {
+      success: false,
+      error: new Error("ipAddress needs to be of type string."),
+    };
+  }
+
+  const parentPath = formData.get("parentPath");
+  if (typeof parentPath !== "string") {
+    return {
+      success: false,
+      error: new Error("parentPath needs to be of type string."),
+    };
+  }
+
+  const dirName = formData.get("dirname");
+  if (typeof dirName !== "string") {
+    return {
+      success: false,
+      error: new Error("dirName needs to be of type string."),
+    };
+  }
+
+  try {
+    await createDirectory(ipAddress, dirName, parentPath);
   } catch (err) {
     return {
       success: false,

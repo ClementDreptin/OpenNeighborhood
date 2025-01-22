@@ -291,6 +291,33 @@ export async function deleteFile(
   );
 }
 
+export async function createDirectory(
+  ipAddress: string,
+  dirName: string,
+  parentPath: string,
+) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  const fullPath = path.win32.join(parentPath, dirName);
+
+  try {
+    await xbdm.sendCommand(ipAddress, "Ok", `mkdir name="${fullPath}"`);
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      err.cause === xbdm.STATUS_CODES.FileAlreadyExists
+    ) {
+      throw new Error(
+        `A file or directory with the name "${dirName}" already exists.`,
+      );
+    }
+
+    throw err;
+  }
+}
+
 export async function launchXex(ipAddress: string, filePath: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");

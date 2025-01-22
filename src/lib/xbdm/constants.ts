@@ -6,6 +6,7 @@ export const STATUS_CODES = {
   MultilineResponseFollows: "202", // 202- multiline response follows
   BinaryResponseFollows: "203", // 203- binary response follows
   SendBinaryData: "204", // 204- send binary data
+  FileAlreadyExists: "410", // 410- file already exists
 } as const;
 
 export type Status = keyof typeof STATUS_CODES;
