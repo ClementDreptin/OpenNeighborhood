@@ -238,7 +238,7 @@ export async function downloadFile(ipAddress: string, filePath: string) {
   const sizeBuffer = await reader.readBytes(4);
   const size = sizeBuffer.readUInt32LE();
 
-  const stream = reader.streamRemainingData();
+  const stream = reader.streamRemainingData(size);
 
   return { size, stream };
 }
