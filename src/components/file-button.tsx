@@ -8,11 +8,11 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import ConfirmModal from "./confirm-modal";
 import { IconButton } from "./ui/icon-button";
 import directoryIcon from "@/../public/directory.svg";
 import fileIcon from "@/../public/file.svg";
 import xexIcon from "@/../public/xex.svg";
+import ActionModal from "@/components/action-modal";
 import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
@@ -67,11 +67,17 @@ export default function FileButton({ file }: FileButtonProps) {
     formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
     formData.set("filePath", fullPath);
 
-    launchXexAction(formData).catch((error: unknown) => {
-      if (error instanceof Error) {
-        displayErrorToast(error.message);
-      }
-    });
+    launchXexAction(formData)
+      .then((result) => {
+        if (result.error != null) {
+          displayErrorToast(result.error.message);
+        }
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error) {
+          displayErrorToast(error.message);
+        }
+      });
   };
 
   const handleDownload = () => {
@@ -150,14 +156,17 @@ export default function FileButton({ file }: FileButtonProps) {
         </ContextMenuContent>
       </ContextMenu>
 
-      <ConfirmModal
+      <ActionModal
         open={confirmDeleteModalOpen}
         onOpenChange={setConfirmDeleteModalOpen}
         action={handleDelete}
-      >
-        Are you sure you want to delete <strong>{file.name}</strong>
-        {file.isDirectory ? " and all of its contents" : ""}?
-      </ConfirmModal>
+        description={
+          <>
+            Are you sure you want to delete <strong>{file.name}</strong>
+            {file.isDirectory ? " and all of its contents" : ""}?
+          </>
+        }
+      />
 
       <Dialog open={propertiesModalOpen} onOpenChange={setPropertiesModalOpen}>
         <DialogContent>

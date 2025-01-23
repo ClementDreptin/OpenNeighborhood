@@ -11,15 +11,32 @@ import {
 } from "@/components/ui/dialog";
 import type { FormAction } from "@/lib/actions";
 
-interface ConfirmModalProps {
+interface ActionModalProps {
   open: React.ComponentProps<typeof Dialog>["open"];
   onOpenChange: React.ComponentProps<typeof Dialog>["onOpenChange"];
   action: FormAction;
-  children: React.ReactNode;
+  title?: React.ReactNode;
+  description: React.ReactNode;
+  children?:
+    | React.ReactNode
+    | ((props: { isError: boolean; isPending: boolean }) => React.ReactNode);
+  actions?: {
+    cancel?: React.ReactNode;
+    submit?: React.ReactNode;
+  };
 }
 
-export default function ConfirmModal(props: ConfirmModalProps) {
-  const { open, onOpenChange, action, children } = props;
+export default function ActionModal(props: ActionModalProps) {
+  const {
+    open,
+    onOpenChange,
+    action,
+    title = "Confirmation",
+    description,
+    children,
+    actions = { cancel: "No", submit: "Yes", ...props.actions },
+  } = props;
+
   const [formState, formAction, isPending] = React.useActionState(
     (_: unknown, formData: FormData) => action(formData),
     null,
@@ -36,11 +53,15 @@ export default function ConfirmModal(props: ConfirmModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Confirmation</DialogTitle>
-          <DialogDescription>{children}</DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        <form action={formAction}>
+        <form className="flex flex-col gap-4" action={formAction}>
+          {typeof children === "function"
+            ? children({ isError, isPending })
+            : children}
+
           {isError ? (
             <p role="alert" className="text-destructive">
               {formState.error?.message}
@@ -49,10 +70,10 @@ export default function ConfirmModal(props: ConfirmModalProps) {
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="secondary">No</Button>
+              <Button variant="secondary">{actions.cancel}</Button>
             </DialogClose>
             <Button type="submit" disabled={isPending}>
-              Yes
+              {actions.submit}
             </Button>
           </DialogFooter>
         </form>

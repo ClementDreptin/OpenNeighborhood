@@ -14,7 +14,7 @@ export type FormAction = (
   formData: FormData,
 ) => Promise<{ success: boolean; error?: Error }>;
 
-export async function createConsoleAction(_: unknown, formData: FormData) {
+export const createConsoleAction: FormAction = async (formData: FormData) => {
   const ipAddressBytes = Array.from(formData.values()).map(String);
 
   try {
@@ -29,14 +29,14 @@ export async function createConsoleAction(_: unknown, formData: FormData) {
   revalidatePath("/");
 
   return { success: true };
-}
+};
 
 export const deleteConsoleAction: FormAction = async (formData) => {
-  const ipAddress = formData.get("ipAddress");
-  if (typeof ipAddress !== "string") {
+  const { ipAddress, error } = checkFormData(formData, ["ipAddress"]);
+  if (error != null) {
     return {
       success: false,
-      error: new Error("ipAddress needs to be of type string."),
+      error,
     };
   }
 
@@ -55,19 +55,14 @@ export const deleteConsoleAction: FormAction = async (formData) => {
 };
 
 export const deleteFileAction: FormAction = async (formData) => {
-  const ipAddress = formData.get("ipAddress");
-  if (typeof ipAddress !== "string") {
+  const { ipAddress, filePath, error } = checkFormData(formData, [
+    "ipAddress",
+    "filePath",
+  ]);
+  if (error != null) {
     return {
       success: false,
-      error: new Error("ipAddress needs to be of type string."),
-    };
-  }
-
-  const filePath = formData.get("filePath");
-  if (typeof filePath !== "string") {
-    return {
-      success: false,
-      error: new Error("filePath needs to be of type string."),
+      error,
     };
   }
 
@@ -87,47 +82,45 @@ export const deleteFileAction: FormAction = async (formData) => {
   return { success: true };
 };
 
-export async function launchXexAction(formData: FormData) {
-  const ipAddress = formData.get("ipAddress");
-  if (typeof ipAddress !== "string") {
-    throw new Error("ipAddress needs to be of type string.");
-  }
-
-  const filePath = formData.get("filePath");
-  if (typeof filePath !== "string") {
-    throw new Error("filePath needs to be of type string.");
-  }
-
-  await launchXex(ipAddress, filePath);
-}
-
-export const createDirectoryAction: FormAction = async (formData) => {
-  const ipAddress = formData.get("ipAddress");
-  if (typeof ipAddress !== "string") {
+export const launchXexAction: FormAction = async (formData: FormData) => {
+  const { ipAddress, filePath, error } = checkFormData(formData, [
+    "ipAddress",
+    "filePath",
+  ]);
+  if (error != null) {
     return {
       success: false,
-      error: new Error("ipAddress needs to be of type string."),
-    };
-  }
-
-  const parentPath = formData.get("parentPath");
-  if (typeof parentPath !== "string") {
-    return {
-      success: false,
-      error: new Error("parentPath needs to be of type string."),
-    };
-  }
-
-  const dirName = formData.get("dirname");
-  if (typeof dirName !== "string") {
-    return {
-      success: false,
-      error: new Error("dirName needs to be of type string."),
+      error,
     };
   }
 
   try {
-    await createDirectory(ipAddress, dirName, parentPath);
+    await launchXex(ipAddress, filePath);
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err : new Error("Something went wrong."),
+    };
+  }
+
+  return { success: true };
+};
+
+export const createDirectoryAction: FormAction = async (formData) => {
+  const { ipAddress, parentPath, dirname, error } = checkFormData(formData, [
+    "ipAddress",
+    "parentPath",
+    "dirname",
+  ]);
+  if (error != null) {
+    return {
+      success: false,
+      error,
+    };
+  }
+
+  try {
+    await createDirectory(ipAddress, dirname, parentPath);
   } catch (err) {
     return {
       success: false,
@@ -139,3 +132,19 @@ export const createDirectoryAction: FormAction = async (formData) => {
 
   return { success: true };
 };
+
+function checkFormData<T extends string>(formData: FormData, keys: T[]) {
+  const result: Record<string, unknown> = {};
+
+  for (const key of keys) {
+    const value = formData.get(key);
+    if (typeof value !== "string" || value === "") {
+      result.error = new Error(`${key} needs to be a non-empty string.`);
+      break;
+    }
+
+    result[key] = value;
+  }
+
+  return result as Record<T, string> & { error?: Error };
+}
