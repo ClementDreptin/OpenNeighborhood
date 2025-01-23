@@ -3,8 +3,8 @@
 import * as React from "react";
 import type { StaticImageData } from "next/image";
 import { useRouter } from "next/navigation";
-import ConfirmModal from "./confirm-modal";
 import consoleIcon from "@/../public/console.svg";
+import ActionModal from "@/components/action-modal";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -58,7 +58,7 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
         </ContextMenuContent>
       </ContextMenu>
 
-      <ConfirmModal
+      <ActionModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         action={handleDelete}

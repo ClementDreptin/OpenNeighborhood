@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { StaticImageData } from "next/image";
-import ConfirmModal from "./confirm-modal";
+import ActionModal from "@/components/action-modal";
 import addConsoleButtonIcon from "@/../public/add-console-button.svg";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,7 @@ export default function AddConsoleButton() {
         Add Xbox 360
       </IconButton>
 
-      <ConfirmModal
+      <ActionModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         action={createConsoleAction}
@@ -79,7 +79,7 @@ export default function AddConsoleButton() {
             })}
           </div>
         )}
-      </ConfirmModal>
+      </ActionModal>
     </>
   );
 }

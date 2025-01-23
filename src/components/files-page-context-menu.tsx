@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import ConfirmModal from "./confirm-modal";
+import ActionModal from "@/components/action-modal";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -50,7 +50,7 @@ export default function FilesPageContextMenu({
         </ContextMenuContent>
       </ContextMenu>
 
-      <ConfirmModal
+      <ActionModal
         open={createDirectoryModalOpen}
         onOpenChange={setCreateDirectoryModalOpen}
         action={handleCreateDirectory}
@@ -72,7 +72,7 @@ export default function FilesPageContextMenu({
             />
           </>
         )}
-      </ConfirmModal>
+      </ActionModal>
     </>
   );
 }

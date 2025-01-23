@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import type { FormAction } from "@/lib/actions";
 
-interface ConfirmModalProps {
+interface ActionModalProps {
   open: React.ComponentProps<typeof Dialog>["open"];
   onOpenChange: React.ComponentProps<typeof Dialog>["onOpenChange"];
   action: FormAction;
@@ -26,7 +26,7 @@ interface ConfirmModalProps {
   };
 }
 
-export default function ConfirmModal(props: ConfirmModalProps) {
+export default function ActionModal(props: ActionModalProps) {
   const {
     open,
     onOpenChange,

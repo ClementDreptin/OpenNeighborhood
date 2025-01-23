@@ -8,7 +8,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import ConfirmModal from "./confirm-modal";
+import ActionModal from "@/components/action-modal";
 import { IconButton } from "./ui/icon-button";
 import directoryIcon from "@/../public/directory.svg";
 import fileIcon from "@/../public/file.svg";
@@ -156,7 +156,7 @@ export default function FileButton({ file }: FileButtonProps) {
         </ContextMenuContent>
       </ContextMenu>
 
-      <ConfirmModal
+      <ActionModal
         open={confirmDeleteModalOpen}
         onOpenChange={setConfirmDeleteModalOpen}
         action={handleDelete}
