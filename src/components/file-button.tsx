@@ -160,10 +160,13 @@ export default function FileButton({ file }: FileButtonProps) {
         open={confirmDeleteModalOpen}
         onOpenChange={setConfirmDeleteModalOpen}
         action={handleDelete}
-      >
-        Are you sure you want to delete <strong>{file.name}</strong>
-        {file.isDirectory ? " and all of its contents" : ""}?
-      </ConfirmModal>
+        description={
+          <>
+            Are you sure you want to delete <strong>{file.name}</strong>
+            {file.isDirectory ? " and all of its contents" : ""}?
+          </>
+        }
+      />
 
       <Dialog open={propertiesModalOpen} onOpenChange={setPropertiesModalOpen}>
         <DialogContent>

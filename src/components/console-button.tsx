@@ -62,9 +62,8 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
         open={modalOpen}
         onOpenChange={setModalOpen}
         action={handleDelete}
-      >
-        Are you sure you want to delete {console.ipAddress}?
-      </ConfirmModal>
+        description={`Are you sure you want to delete ${console.ipAddress}?`}
+      />
     </>
   );
 }

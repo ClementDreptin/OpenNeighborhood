@@ -14,7 +14,7 @@ export type FormAction = (
   formData: FormData,
 ) => Promise<{ success: boolean; error?: Error }>;
 
-export async function createConsoleAction(_: unknown, formData: FormData) {
+export const createConsoleAction: FormAction = async (formData: FormData) => {
   const ipAddressBytes = Array.from(formData.values()).map(String);
 
   try {
@@ -29,7 +29,7 @@ export async function createConsoleAction(_: unknown, formData: FormData) {
   revalidatePath("/");
 
   return { success: true };
-}
+};
 
 export const deleteConsoleAction: FormAction = async (formData) => {
   const { ipAddress, error } = checkFormData(formData, ["ipAddress"]);
