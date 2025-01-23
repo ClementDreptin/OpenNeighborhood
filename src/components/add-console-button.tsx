@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import type { StaticImageData } from "next/image";
-import ActionModal from "@/components/action-modal";
 import addConsoleButtonIcon from "@/../public/add-console-button.svg";
+import ActionModal from "@/components/action-modal";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { createConsoleAction } from "@/lib/actions";

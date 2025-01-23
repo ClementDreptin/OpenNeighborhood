@@ -8,11 +8,11 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import ActionModal from "@/components/action-modal";
 import { IconButton } from "./ui/icon-button";
 import directoryIcon from "@/../public/directory.svg";
 import fileIcon from "@/../public/file.svg";
 import xexIcon from "@/../public/xex.svg";
+import ActionModal from "@/components/action-modal";
 import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
