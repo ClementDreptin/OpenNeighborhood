@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 import path from "node:path";
-import mime from "mime";
+import { Readable } from "node:stream";
+import type { ReadableStream } from "node:stream/web";
+import archiver from "archiver";
 import { downloadFile } from "@/lib/consoles";
 
 export async function GET(request: NextRequest) {
@@ -23,15 +25,23 @@ export async function GET(request: NextRequest) {
   }
 
   const fileName = path.win32.basename(filePath);
-  const mimeType = mime.getType(fileName);
-  const { size, stream } = await downloadFile(ipAddress, filePath);
+  const zipFileName = `${fileName}.zip`;
+  const { stream } = await downloadFile(ipAddress, filePath);
+  const nodeReadable = Readable.fromWeb(stream as ReadableStream);
 
-  return new Response(stream, {
-    status: 200,
-    headers: new Headers({
-      "Content-Disposition": `attachment; filename=${fileName}`,
-      "Content-Type": mimeType ?? "application/octet-stream",
-      "Content-Length": size.toString(),
-    }),
-  });
+  const archive = archiver("zip");
+
+  archive.append(nodeReadable, { name: fileName });
+  await archive.finalize();
+
+  return new Response(
+    Readable.toWeb(archive) as unknown as globalThis.ReadableStream,
+    {
+      status: 200,
+      headers: new Headers({
+        "Content-Disposition": `attachment; filename=${zipFileName}`,
+        "Content-Type": "application/zip",
+      }),
+    },
+  );
 }
