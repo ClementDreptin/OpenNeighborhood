@@ -25,8 +25,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const fileName = path.win32.basename(filePath);
-  const headers = new Headers();
+  const fileName = `${path.win32.basename(filePath)}${isDirectory ? ".zip" : ""}`;
+  const headers = new Headers({
+    "Content-Disposition": `attachment; filename=${fileName}`,
+    "Content-Type": isDirectory
+      ? "application/zip"
+      : (mime.getType(fileName) ?? "application/octet-stream"),
+  });
 
   let stream;
   if (isDirectory) {
@@ -34,18 +39,9 @@ export async function GET(request: NextRequest) {
     await downloadDirectory(ipAddress, filePath, archive);
     archive.finalize().catch(console.error);
     stream = archive;
-
-    headers.set("Content-Disposition", `attachment; filename=${fileName}.zip`);
-    headers.set("Content-Type", "application/zip");
   } else {
     const result = await downloadFile(ipAddress, filePath);
     stream = result.stream;
-
-    headers.set("Content-Disposition", `attachment; filename=${fileName}`);
-    headers.set(
-      "Content-Type",
-      mime.getType(fileName) ?? "application/octet-stream",
-    );
     headers.set("Content-Length", result.size.toString());
   }
 
