@@ -1,8 +1,9 @@
 import type { NextRequest } from "next/server";
 import path from "node:path";
 import { Readable } from "node:stream";
+import archiver from "archiver";
 import mime from "mime";
-import { downloadFile } from "@/lib/consoles";
+import { downloadDirectory, downloadFile } from "@/lib/consoles";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -25,17 +26,27 @@ export async function GET(request: NextRequest) {
   }
 
   const fileName = path.win32.basename(filePath);
-  const { size, stream } = await downloadFile(ipAddress, filePath, isDirectory);
-  const contentType = isDirectory
-    ? "application/zip"
-    : (mime.getType(fileName) ?? "application/octet-stream");
+  const headers = new Headers();
 
-  const headers = new Headers({
-    "Content-Disposition": `attachment; filename=${fileName}${isDirectory ? ".zip" : ""}`,
-    "Content-Type": contentType,
-  });
-  if (!isDirectory) {
-    headers.set("Content-Length", size.toString());
+  let stream;
+  if (isDirectory) {
+    const archive = archiver("zip");
+    await downloadDirectory(ipAddress, filePath, archive);
+    archive.finalize().catch(console.error);
+    stream = archive;
+
+    headers.set("Content-Disposition", `attachment; filename=${fileName}.zip`);
+    headers.set("Content-Type", "application/zip");
+  } else {
+    const result = await downloadFile(ipAddress, filePath);
+    stream = result.stream;
+
+    headers.set("Content-Disposition", `attachment; filename=${fileName}`);
+    headers.set(
+      "Content-Type",
+      mime.getType(fileName) ?? "application/octet-stream",
+    );
+    headers.set("Content-Length", result.size.toString());
   }
 
   return new Response(Readable.toWeb(stream) as ReadableStream, {

@@ -81,11 +81,6 @@ export default function FileButton({ file }: FileButtonProps) {
   };
 
   const handleDownload = () => {
-    if (file.isDirectory) {
-      displayErrorToast("Not implemented.");
-      return;
-    }
-
     const url = new URL(
       `${window.location.pathname}/download`,
       window.location.origin,

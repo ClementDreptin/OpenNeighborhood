@@ -3,7 +3,7 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream } from "node:stream/web";
-import archiver from "archiver";
+import type { Archiver } from "archiver";
 import { isValidIpv4 } from "./utils";
 import * as xbdm from "./xbdm";
 import "server-only";
@@ -223,11 +223,7 @@ export async function getFiles(ipAddress: string, dirPath: string) {
   });
 }
 
-export async function downloadFile(
-  ipAddress: string,
-  filePath: string,
-  isDirectory: boolean,
-) {
+export async function downloadFile(ipAddress: string, filePath: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
   }
@@ -245,16 +241,29 @@ export async function downloadFile(
 
   const stream = reader.streamRemainingData(size);
 
-  if (isDirectory) {
-    const fileName = path.win32.basename(filePath);
-    const archive = archiver("zip");
-    archive.append(stream, { name: fileName });
-    archive.finalize().catch(console.error);
-
-    return { size: 0, stream: archive };
-  }
-
   return { size, stream };
+}
+
+export async function downloadDirectory(
+  ipAddress: string,
+  dirPath: string,
+  archive: Archiver,
+  baseDirPath = dirPath,
+) {
+  const files = await getFiles(ipAddress, dirPath);
+
+  for (const file of files) {
+    const filePath = path.win32.join(dirPath, file.name);
+
+    if (file.isDirectory) {
+      await downloadDirectory(ipAddress, filePath, archive, baseDirPath);
+      continue;
+    }
+
+    const { stream } = await downloadFile(ipAddress, filePath);
+    const entryName = path.win32.relative(baseDirPath, filePath);
+    archive.append(stream, { name: entryName });
+  }
 }
 
 export async function uploadFile(
