@@ -3,6 +3,7 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream } from "node:stream/web";
+import archiver from "archiver";
 import { isValidIpv4 } from "./utils";
 import * as xbdm from "./xbdm";
 import "server-only";
@@ -222,7 +223,11 @@ export async function getFiles(ipAddress: string, dirPath: string) {
   });
 }
 
-export async function downloadFile(ipAddress: string, filePath: string) {
+export async function downloadFile(
+  ipAddress: string,
+  filePath: string,
+  isDirectory: boolean,
+) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
   }
@@ -239,6 +244,15 @@ export async function downloadFile(ipAddress: string, filePath: string) {
   const size = sizeBuffer.readUInt32LE();
 
   const stream = reader.streamRemainingData(size);
+
+  if (isDirectory) {
+    const fileName = path.win32.basename(filePath);
+    const archive = archiver("zip");
+    archive.append(stream, { name: fileName });
+    archive.finalize().catch(console.error);
+
+    return { size: 0, stream: archive };
+  }
 
   return { size, stream };
 }

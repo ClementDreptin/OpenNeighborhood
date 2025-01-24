@@ -95,6 +95,7 @@ export default function FileButton({ file }: FileButtonProps) {
       typeof ipAddress === "string" ? ipAddress : "",
     );
     url.searchParams.set("path", fullPath);
+    url.searchParams.set("isDirectory", file.isDirectory.toString());
 
     const link = document.createElement("a");
     link.href = url.toString();
