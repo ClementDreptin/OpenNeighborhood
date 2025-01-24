@@ -37,10 +37,10 @@ export async function GET(request: NextRequest) {
   if (isDirectory) {
     const archive = archiver("zip");
     downloadDirectory(ipAddress, filePath, archive)
-      .then(() => {
-        archive.finalize().catch(console.error);
-      })
-      .catch(console.error);
+      .then(() => archive.finalize())
+      .catch((error: unknown) => {
+        archive.destroy(error instanceof Error ? error : undefined);
+      });
 
     stream = archive;
   } else {
