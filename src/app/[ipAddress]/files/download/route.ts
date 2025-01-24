@@ -36,8 +36,12 @@ export async function GET(request: NextRequest) {
   let stream;
   if (isDirectory) {
     const archive = archiver("zip");
-    await downloadDirectory(ipAddress, filePath, archive);
-    archive.finalize().catch(console.error);
+    downloadDirectory(ipAddress, filePath, archive)
+      .then(() => {
+        archive.finalize().catch(console.error);
+      })
+      .catch(console.error);
+
     stream = archive;
   } else {
     const result = await downloadFile(ipAddress, filePath);

@@ -263,6 +263,11 @@ export async function downloadDirectory(
     const { stream } = await downloadFile(ipAddress, filePath);
     const entryName = path.win32.relative(baseDirPath, filePath);
     archive.append(stream, { name: entryName });
+
+    await new Promise((resolve, reject) => {
+      stream.on("end", resolve);
+      stream.on("error", reject);
+    });
   }
 }
 
