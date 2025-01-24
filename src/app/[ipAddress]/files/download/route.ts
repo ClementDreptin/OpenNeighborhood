@@ -30,9 +30,8 @@ export async function GET(request: NextRequest) {
   const nodeReadable = Readable.fromWeb(stream as ReadableStream);
 
   const archive = archiver("zip");
-
   archive.append(nodeReadable, { name: fileName });
-  await archive.finalize();
+  archive.finalize().catch(console.error);
 
   return new Response(
     Readable.toWeb(archive) as unknown as globalThis.ReadableStream,
