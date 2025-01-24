@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
 import path from "node:path";
 import { Readable } from "node:stream";
-import type { ReadableStream } from "node:stream/web";
 import archiver from "archiver";
 import { downloadFile } from "@/lib/consoles";
 
@@ -27,10 +26,9 @@ export async function GET(request: NextRequest) {
   const fileName = path.win32.basename(filePath);
   const zipFileName = `${fileName}.zip`;
   const { stream } = await downloadFile(ipAddress, filePath);
-  const nodeReadable = Readable.fromWeb(stream as ReadableStream);
 
   const archive = archiver("zip");
-  archive.append(nodeReadable, { name: fileName });
+  archive.append(stream, { name: fileName });
   archive.finalize().catch(console.error);
 
   return new Response(
