@@ -264,6 +264,9 @@ export async function downloadDirectory(
     const entryName = path.win32.relative(baseDirPath, filePath);
     archive.append(stream, { name: entryName });
 
+    // We have to have to for the current file to finish reading before going to the
+    // next one, otherwise we can run into "401- max number of connections exceeded" errors
+    // for very large directories
     await new Promise((resolve, reject) => {
       stream.on("end", resolve);
       stream.on("error", reject);

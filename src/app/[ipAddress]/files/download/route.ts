@@ -34,11 +34,18 @@ export async function GET(request: NextRequest) {
   });
 
   let stream;
+
+  // For directories, we need to return a zip archive
   if (isDirectory) {
     const archive = archiver("zip");
+
+    // We don't use await here because otherwise all the data would have to be
+    // read from the console first before being piped into the response
     downloadDirectory(ipAddress, filePath, archive)
       .then(() => archive.finalize())
       .catch((error: unknown) => {
+        // Destroying the archive on error allow the download to be completely
+        // on the client
         archive.destroy(error instanceof Error ? error : undefined);
       });
 
