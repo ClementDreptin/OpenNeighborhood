@@ -75,10 +75,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
     const directories = new Set<string>();
 
     filesToUpload.forEach((file) => {
-      const filePathParts =
-        file.path?.split("/").filter((part) => part !== "" && part !== ".") ??
-        [];
-      const fileDir = filePathParts.slice(0, -1).join("/");
+      const fileDir = pathDirname(file.path ?? "");
 
       if (fileDir !== "") {
         directories.add(fileDir);
@@ -112,10 +109,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
         setCurrentFileName(file.name);
         setUploadProgress(i);
 
-        const filePathParts =
-          file.path?.split("/").filter((part) => part !== "" && part !== ".") ??
-          [];
-        const fileDir = filePathParts.slice(0, -1).join("/");
+        const fileDir = pathDirname(file.path ?? "");
 
         const formData = new FormData();
         formData.set(
@@ -229,4 +223,20 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
       </Dialog>
     </div>
   );
+}
+
+function pathDirname(path: string) {
+  const separator = "/";
+
+  // When a directory is dropped, the files at its root will have a path that looks
+  // like "./<filename>", so if we split on "/" we get [".", "<filename>"], which is
+  // why we need to filter out the "."
+  const parts = path
+    .split(separator)
+    .filter((part) => part !== "" && part !== ".");
+
+  // The last part is the file name so we remove it
+  parts.pop();
+
+  return parts.join(separator);
 }
