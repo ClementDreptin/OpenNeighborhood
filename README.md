@@ -8,9 +8,9 @@ Web-based clone of Xbox 360 Neighborhood.
 
 # Screenshots
 
-| Home                                         | Root of HDD                                          |
-| -------------------------------------------- | ---------------------------------------------------- |
-| <img src="./resources/home.png" alt="Home"/> | <img src="./resources/hdd-root.png" alt="HDD root"/> |
+| Home                          | Root of HDD                           |
+| ----------------------------- | ------------------------------------- |
+| ![Home](./resources/home.png) | ![HDD root](./resources/hdd-root.png) |
 
 ## Disclaimer
 
