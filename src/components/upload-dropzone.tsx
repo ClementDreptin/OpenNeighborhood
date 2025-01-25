@@ -159,7 +159,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
             </DialogDescription>
           </DialogHeader>
 
-          {!isError && (
+          {!isError ? (
             <div className="flex flex-col gap-2">
               <p>
                 Uploading <strong>{currentFileName}</strong>...
@@ -170,13 +170,11 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
               </p>
               <Progress value={(uploadProgress / selectedFiles.length) * 100} />
             </div>
-          )}
-
-          {isError ? (
+          ) : (
             <p role="alert" className="text-destructive">
               {errorMessage}
             </p>
-          ) : null}
+          )}
         </DialogContent>
       </Dialog>
 
