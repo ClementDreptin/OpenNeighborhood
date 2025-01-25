@@ -70,30 +70,12 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const proceedWithUpload = async (filesToUpload: FileWithPath[]) => {
     setModalOpen(true);
 
-    const directories = new Set<string>();
-
-    filesToUpload.forEach((file) => {
-      let currentPath = pathDirname(file.path ?? "");
-
-      while (currentPath !== "") {
-        directories.add(currentPath);
-        currentPath = pathDirname(currentPath);
-      }
-    });
-
-    const sortedDirectories = Array.from(directories).sort((a, b) => {
-      const depthA = a.split("/").length;
-      const depthB = b.split("/").length;
-      return depthA - depthB;
-    });
+    const directories = getDirectories(filesToUpload);
+    const formData = new FormData();
+    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
 
     try {
-      for (const directory of sortedDirectories) {
-        const formData = new FormData();
-        formData.set(
-          "ipAddress",
-          typeof ipAddress === "string" ? ipAddress : "",
-        );
+      for (const directory of directories) {
         formData.set("parentPath", dirPath);
         formData.set("dirname", directory);
 
@@ -110,11 +92,6 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
 
         const fileDir = pathDirname(file.path ?? "");
 
-        const formData = new FormData();
-        formData.set(
-          "ipAddress",
-          typeof ipAddress === "string" ? ipAddress : "",
-        );
         formData.set("dirPath", `${dirPath}\\${fileDir}`);
         formData.set("file", file);
 
@@ -238,4 +215,25 @@ function pathDirname(path: string) {
   parts.pop();
 
   return parts.join(separator);
+}
+
+function getDirectories(files: FileWithPath[]) {
+  const directories = new Set<string>();
+
+  files.forEach((file) => {
+    let currentPath = pathDirname(file.path ?? "");
+
+    while (currentPath !== "") {
+      directories.add(currentPath);
+      currentPath = pathDirname(currentPath);
+    }
+  });
+
+  const sortedDirectories = Array.from(directories).sort((a, b) => {
+    const depthA = a.split("/").length;
+    const depthB = b.split("/").length;
+    return depthA - depthB;
+  });
+
+  return sortedDirectories;
 }
