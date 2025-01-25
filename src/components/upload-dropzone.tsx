@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useFilesContext } from "@/contexts/FilesContext";
-import { displayErrorToast } from "@/lib/utils";
+import { createDirectoryAction } from "@/lib/actions";
 
 interface UploadDropzoneProps {
   children: React.ReactNode;
@@ -35,7 +35,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const { files } = useFilesContext();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
-  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
+  const [selectedFiles, setSelectedFiles] = React.useState<FileWithPath[]>([]);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [currentFileName, setCurrentFileName] = React.useState("");
@@ -44,14 +44,6 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
 
   const onDrop = (acceptedFiles: FileWithPath[]) => {
     if (acceptedFiles.length === 0) {
-      return;
-    }
-
-    const containsDirectory = acceptedFiles.some(
-      (file) => file.path?.indexOf("/") !== file.path?.lastIndexOf("/"),
-    );
-    if (containsDirectory) {
-      displayErrorToast("Uploading a directory isn't supported yet.");
       return;
     }
 
@@ -75,23 +67,62 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
     void proceedWithUpload(selectedFiles);
   };
 
-  const proceedWithUpload = async (filesToUpload: File[]) => {
+  const proceedWithUpload = async (filesToUpload: FileWithPath[]) => {
     setModalOpen(true);
     setErrorMessage("");
     setUploadProgress(0);
 
+    const directories = new Set<string>();
+
+    filesToUpload.forEach((file) => {
+      const filePathParts =
+        file.path?.split("/").filter((part) => part !== "" && part !== ".") ??
+        [];
+      const fileDir = filePathParts.slice(0, -1).join("/");
+
+      if (fileDir !== "") {
+        directories.add(fileDir);
+      }
+    });
+
+    const sortedDirectories = Array.from(directories).sort((a, b) => {
+      const depthA = a.split("/").length;
+      const depthB = b.split("/").length;
+      return depthA - depthB;
+    });
+
     try {
+      for (const directory of sortedDirectories) {
+        const formData = new FormData();
+        formData.set(
+          "ipAddress",
+          typeof ipAddress === "string" ? ipAddress : "",
+        );
+        formData.set("parentPath", dirPath);
+        formData.set("dirname", directory);
+
+        const result = await createDirectoryAction(formData);
+        if (result.error != null) {
+          throw result.error;
+        }
+      }
+
       for (let i = 0; i < filesToUpload.length; i++) {
         const file = filesToUpload[i];
         setCurrentFileName(file.name);
         setUploadProgress(i);
+
+        const filePathParts =
+          file.path?.split("/").filter((part) => part !== "" && part !== ".") ??
+          [];
+        const fileDir = filePathParts.slice(0, -1).join("/");
 
         const formData = new FormData();
         formData.set(
           "ipAddress",
           typeof ipAddress === "string" ? ipAddress : "",
         );
-        formData.set("dirPath", dirPath);
+        formData.set("dirPath", `${dirPath}\\${fileDir}`);
         formData.set("file", file);
 
         const response = await fetch(`${pathname}/upload`, {
