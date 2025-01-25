@@ -69,16 +69,15 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
 
   const proceedWithUpload = async (filesToUpload: FileWithPath[]) => {
     setModalOpen(true);
-    setErrorMessage("");
-    setUploadProgress(0);
 
     const directories = new Set<string>();
 
     filesToUpload.forEach((file) => {
-      const fileDir = pathDirname(file.path ?? "");
+      let currentPath = pathDirname(file.path ?? "");
 
-      if (fileDir !== "") {
-        directories.add(fileDir);
+      while (currentPath !== "") {
+        directories.add(currentPath);
+        currentPath = pathDirname(currentPath);
       }
     });
 
