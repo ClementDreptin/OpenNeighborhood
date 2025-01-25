@@ -100,9 +100,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
         });
 
         if (!response.ok) {
-          throw new Error(
-            `Uploading ${file.name} failed with status ${response.status.toString()}.`,
-          );
+          throw new Error(await response.text());
         }
       }
 
