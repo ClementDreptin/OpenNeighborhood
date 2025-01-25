@@ -85,13 +85,13 @@ export function createSocketReader(socket: Socket): SocketReader {
     });
   };
 
-  // Convert the rest of the data, up to maxSize if defined, into a web ReadableStream
+  // Convert the rest of the data, up to maxSize if defined, into a Readable
   const streamRemainingData = (maxSize?: number) => {
     let bytesRead = 0;
 
     const readable = new Readable({
       read() {
-        // If the internal buffer still contains data, push its content to
+        // If the internal buffer still contains data, push its content into
         // the stream and flush the buffer
         if (buffer.length > 0) {
           // If a maxSize was defined and the internal buffer is big enough
