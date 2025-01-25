@@ -21,19 +21,19 @@ export default async function FilesPage(props: PageProps) {
     return <ErrorPage error={err} />;
   }
 
-  if (files.length === 0) {
-    return <p className="text-center">This folder is empty.</p>;
-  }
-
   return (
     <FilesProvider files={files}>
       <FilesPageContextMenu>
         <UploadDropzone>
-          <div className="grid h-full auto-rows-min grid-cols-autofill gap-4">
-            {files.map((file) => (
-              <FileButton key={file.name} file={file} />
-            ))}
-          </div>
+          {files.length > 0 ? (
+            <div className="grid h-full auto-rows-min grid-cols-autofill gap-4">
+              {files.map((file) => (
+                <FileButton key={file.name} file={file} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center">This folder is empty.</p>
+          )}
         </UploadDropzone>
       </FilesPageContextMenu>
     </FilesProvider>
