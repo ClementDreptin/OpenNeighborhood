@@ -3,6 +3,7 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream } from "node:stream/web";
+import type { Archiver } from "archiver";
 import { isValidIpv4 } from "./utils";
 import * as xbdm from "./xbdm";
 import "server-only";
@@ -238,9 +239,39 @@ export async function downloadFile(ipAddress: string, filePath: string) {
   const sizeBuffer = await reader.readBytes(4);
   const size = sizeBuffer.readUInt32LE();
 
-  const stream = reader.streamRemainingData();
+  const stream = reader.streamRemainingData(size);
 
   return { size, stream };
+}
+
+export async function downloadDirectory(
+  ipAddress: string,
+  dirPath: string,
+  archive: Archiver,
+  baseDirPath = dirPath,
+) {
+  const files = await getFiles(ipAddress, dirPath);
+
+  for (const file of files) {
+    const filePath = path.win32.join(dirPath, file.name);
+
+    if (file.isDirectory) {
+      await downloadDirectory(ipAddress, filePath, archive, baseDirPath);
+      continue;
+    }
+
+    const { stream } = await downloadFile(ipAddress, filePath);
+    const entryName = path.win32.relative(baseDirPath, filePath);
+    archive.append(stream, { name: entryName });
+
+    // We have to wait for the current file to finish reading before going to the next
+    // one, otherwise we can run into "401- max number of connections exceeded" errors
+    // for very large directories
+    await new Promise((resolve, reject) => {
+      stream.on("end", resolve);
+      stream.on("error", reject);
+    });
+  }
 }
 
 export async function uploadFile(

@@ -1,10 +1,11 @@
 import type { Socket } from "node:net";
+import { Readable } from "node:stream";
 import { LINE_DELIMITER } from "./constants";
 
 export interface SocketReader {
   readLine: () => Promise<string>;
   readBytes: (count: number) => Promise<Buffer>;
-  streamRemainingData: () => ReadableStream;
+  streamRemainingData: (maxSize?: number) => Readable;
 }
 
 export function createSocketReader(socket: Socket): SocketReader {
@@ -84,32 +85,64 @@ export function createSocketReader(socket: Socket): SocketReader {
     });
   };
 
-  // Convert the rest of the data into a web ReadableStream
-  const streamRemainingData = () => {
-    return new ReadableStream({
-      start: (controller) => {
-        // If the internal buffer still contains data, copy its content to
-        // the controller and flush it
+  // Convert the rest of the data, up to maxSize if defined, into a Readable
+  const streamRemainingData = (maxSize?: number) => {
+    let bytesRead = 0;
+
+    const readable = new Readable({
+      read() {
+        // If the internal buffer still contains data, push its content into
+        // the stream and flush the buffer
         if (buffer.length > 0) {
-          controller.enqueue(buffer);
+          // If a maxSize was defined and the internal buffer is big enough
+          // to push maxSize bytes into the stream, push maxSize bytes from
+          // the internal buffer and end the stream here
+          if (maxSize != null && buffer.length > maxSize) {
+            const chunk = buffer.subarray(0, maxSize);
+
+            this.push(chunk);
+            this.push(null);
+            bytesRead = maxSize;
+
+            buffer = buffer.subarray(chunk.length);
+
+            return;
+          }
+
+          this.push(buffer);
+          bytesRead += buffer.length;
+
           buffer = Buffer.alloc(0);
         }
-
-        // Map socket events to controller events
-        socket.on("data", (data) => {
-          controller.enqueue(data);
-        });
-        socket.on("error", (error: Error) => {
-          controller.error(error);
-        });
-        socket.on("end", () => {
-          controller.close();
-        });
       },
-      cancel: () => {
-        socket.destroy();
+      destroy(error, callback) {
+        socket.destroy(error ?? undefined);
+        callback(error);
       },
     });
+
+    // Map socket events to controller events
+    socket.on("data", (data) => {
+      // If a maxSize was defined and will be reached with this chunk, cut the
+      // chunk to make sure no more than maxSize bytes are pushed in total
+      if (maxSize != null && bytesRead + data.length > maxSize) {
+        readable.push(data.subarray(0, maxSize - bytesRead));
+        readable.push(null);
+        bytesRead = maxSize;
+        return;
+      }
+
+      readable.push(data);
+      bytesRead += data.length;
+    });
+    socket.on("end", () => {
+      readable.push(null);
+    });
+    socket.on("error", (error) => {
+      readable.destroy(error);
+    });
+
+    return readable;
   };
 
   return { readLine, readBytes, streamRemainingData };

@@ -81,11 +81,6 @@ export default function FileButton({ file }: FileButtonProps) {
   };
 
   const handleDownload = () => {
-    if (file.isDirectory) {
-      displayErrorToast("Not implemented.");
-      return;
-    }
-
     const url = new URL(
       `${window.location.pathname}/download`,
       window.location.origin,
@@ -95,6 +90,7 @@ export default function FileButton({ file }: FileButtonProps) {
       typeof ipAddress === "string" ? ipAddress : "",
     );
     url.searchParams.set("path", fullPath);
+    url.searchParams.set("isDirectory", file.isDirectory.toString());
 
     const link = document.createElement("a");
     link.href = url.toString();
