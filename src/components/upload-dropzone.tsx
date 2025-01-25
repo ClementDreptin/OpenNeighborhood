@@ -64,51 +64,50 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
     if (someFilesAlreadyExist) {
       setConfirmModalOpen(true);
     } else {
-      proceedWithUpload(acceptedFiles);
+      void proceedWithUpload(acceptedFiles);
     }
   };
 
   const confirmUpload = () => {
     setConfirmModalOpen(false);
-    proceedWithUpload(selectedFiles);
+    void proceedWithUpload(selectedFiles);
   };
 
-  const proceedWithUpload = (filesToUpload: File[]) => {
+  const proceedWithUpload = async (filesToUpload: File[]) => {
     setModalOpen(true);
     setErrorMessage("");
 
-    const uploadPromises = filesToUpload.map((file) => {
-      const formData = new FormData();
-      formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
-      formData.set("dirPath", dirPath);
-      formData.set("file", file);
+    try {
+      for (const file of filesToUpload) {
+        const formData = new FormData();
+        formData.set(
+          "ipAddress",
+          typeof ipAddress === "string" ? ipAddress : "",
+        );
+        formData.set("dirPath", dirPath);
+        formData.set("file", file);
 
-      return fetch(`${pathname}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-    });
+        const response = await fetch(`${pathname}/upload`, {
+          method: "POST",
+          body: formData,
+        });
 
-    Promise.all(uploadPromises)
-      .then((responses) => {
-        const failedUploads = responses.filter((response) => !response.ok);
-
-        if (failedUploads.length > 0) {
+        if (!response.ok) {
           throw new Error(
-            `${failedUploads.length.toString()} file(s) failed to upload.`,
+            `Uploading ${file.name} failed with status ${response.status.toString()}.`,
           );
         }
+      }
 
-        setModalOpen(false);
-        startTransition(() => {
-          router.refresh();
-        });
-      })
-      .catch((error: unknown) => {
-        if (error instanceof Error) {
-          setErrorMessage(error.message);
-        }
+      setModalOpen(false);
+      startTransition(() => {
+        router.refresh();
       });
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      }
+    }
   };
 
   const preventClose = (event: Event) => {
@@ -157,7 +156,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
 
           {!isError && (
             <div className="m-auto">
-              <ReloadIcon className="h-12 w-12 animate-spin text-muted-foreground" />
+              <ReloadIcon className="mr-2 h-12 w-12 animate-spin text-muted-foreground" />
             </div>
           )}
 
