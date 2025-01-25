@@ -8,19 +8,21 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import ActionModal from "@/components/action-modal";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useFilesContext } from "@/contexts/FilesContext";
-import { createDirectoryAction } from "@/lib/actions";
+import {
+  createDirectoryAction,
+  deleteFileAction,
+  type FormAction,
+} from "@/lib/actions";
 
 interface UploadDropzoneProps {
   children: React.ReactNode;
@@ -52,10 +54,11 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
       return;
     }
 
+    const rootFileNames = getRootFileNames(acceptedFiles);
     const someFilesAlreadyExist = files.some((file) =>
-      acceptedFiles.some(
-        (acceptedFile) =>
-          acceptedFile.name.toLowerCase() === file.name.toLowerCase(),
+      rootFileNames.some(
+        (rootFileName) =>
+          rootFileName.toLowerCase() === file.name.toLowerCase(),
       ),
     );
 
@@ -67,9 +70,35 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
     }
   };
 
-  const confirmUpload = () => {
+  const confirmUpload: FormAction = async () => {
+    const existingDirectories = files.filter((file) => file.isDirectory);
+    const rootFileNames = getRootFileNames(selectedFiles);
+
+    const formData = new FormData();
+    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("isDirectory", "true");
+
+    for (const directory of existingDirectories) {
+      for (const selectedFile of rootFileNames) {
+        if (directory.name === selectedFile) {
+          formData.set(
+            "filePath",
+            (!dirPath.endsWith("\\") ? `${dirPath}\\` : dirPath) +
+              directory.name,
+          );
+
+          const result = await deleteFileAction(formData);
+          if (!result.success) {
+            return result;
+          }
+        }
+      }
+    }
+
     setConfirmModalOpen(false);
     void proceedWithUpload(selectedFiles);
+
+    return { success: true };
   };
 
   const proceedWithUpload = async (filesToUpload: FileWithPath[]) => {
@@ -223,41 +252,30 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
       </Dialog>
 
       {/* Confirm upload modal */}
-      <Dialog open={confirmModalOpen} onOpenChange={setConfirmModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmation</DialogTitle>
-            <DialogDescription>
-              Some files already exist. Would you like to replace them?
-            </DialogDescription>
-
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="secondary">No</Button>
-              </DialogClose>
-              <Button onClick={confirmUpload}>Yes</Button>
-            </DialogFooter>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <ActionModal
+        open={confirmModalOpen}
+        onOpenChange={setConfirmModalOpen}
+        action={confirmUpload}
+        description="Some files already exist. Would you like to replace them?"
+      />
     </div>
   );
 }
 
-function pathDirname(path: string) {
-  const separator = "/";
-
+function getPathParts(path: string) {
   // When a directory is dropped, the files at its root will have a path that looks
   // like "./<filename>", so if we split on "/" we get [".", "<filename>"], which is
   // why we need to filter out the "."
-  const parts = path
-    .split(separator)
-    .filter((part) => part !== "" && part !== ".");
+  return path.split("/").filter((part) => part !== "" && part !== ".");
+}
+
+function pathDirname(path: string) {
+  const parts = getPathParts(path);
 
   // The last part is the file name so we remove it
   parts.pop();
 
-  return parts.join(separator);
+  return parts.join("/");
 }
 
 function getDirectories(files: FileWithPath[]) {
@@ -279,4 +297,17 @@ function getDirectories(files: FileWithPath[]) {
   });
 
   return sortedDirectories;
+}
+
+function getRootFileNames(files: FileWithPath[]) {
+  const rootFileNames = new Set<string>();
+
+  for (const file of files) {
+    const parts = getPathParts(file.path ?? "");
+    if (parts.length > 0) {
+      rootFileNames.add(parts[0]);
+    }
+  }
+
+  return Array.from(rootFileNames);
 }
