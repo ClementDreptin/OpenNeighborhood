@@ -35,7 +35,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const { files } = useFilesContext();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [, startTransition] = React.useTransition();
   const isError = errorMessage !== "";
@@ -53,59 +53,49 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
       return;
     }
 
-    if (acceptedFiles.length > 1) {
-      displayErrorToast("Uploading multiple files isn't supported yet.");
-      return;
-    }
-
-    const file = acceptedFiles[0];
-
-    const formData = new FormData();
-    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
-    formData.set("dirPath", dirPath);
-    formData.set("file", file);
-
-    setErrorMessage("");
-    setSelectedFile(file);
-
-    const fileAlreadyExists = files.some(
-      // Xbox file names are not case sensitive, just like Windows...
-      ({ name }) => name.toLowerCase() === file.name.toLocaleLowerCase(),
+    const someFilesAlreadyExist = files.some((file) =>
+      acceptedFiles.some(
+        (acceptedFile) =>
+          acceptedFile.name.toLowerCase() === file.name.toLowerCase(),
+      ),
     );
 
-    if (fileAlreadyExists) {
+    setSelectedFiles(acceptedFiles);
+    if (someFilesAlreadyExist) {
       setConfirmModalOpen(true);
-      return;
+    } else {
+      proceedWithUpload(acceptedFiles);
     }
-
-    proceedWithUpload(formData);
   };
 
   const confirmUpload = () => {
-    if (selectedFile == null) {
-      throw new Error("'selectedFile' is null, this should not happen.");
-    }
-
-    const formData = new FormData();
-    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
-    formData.set("dirPath", dirPath);
-    formData.set("file", selectedFile);
-
     setConfirmModalOpen(false);
-    proceedWithUpload(formData);
+    proceedWithUpload(selectedFiles);
   };
 
-  const proceedWithUpload = (formData: FormData) => {
+  const proceedWithUpload = (filesToUpload: File[]) => {
     setModalOpen(true);
+    setErrorMessage("");
 
-    fetch(`${pathname}/upload`, {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => {
-        if (!response.ok) {
+    const uploadPromises = filesToUpload.map((file) => {
+      const formData = new FormData();
+      formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+      formData.set("dirPath", dirPath);
+      formData.set("file", file);
+
+      return fetch(`${pathname}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+    });
+
+    Promise.all(uploadPromises)
+      .then((responses) => {
+        const failedUploads = responses.filter((response) => !response.ok);
+
+        if (failedUploads.length > 0) {
           throw new Error(
-            `Request failed with status code ${response.status.toString()}.`,
+            `${failedUploads.length.toString()} file(s) failed to upload.`,
           );
         }
 
@@ -153,13 +143,13 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
             <DialogDescription>
               {isError ? (
                 <>
-                  Uploading <strong>{selectedFile?.name}</strong> to{" "}
-                  <strong>{dirPath}</strong> failed with the following error.
+                  Uploading files to <strong>{dirPath}</strong> failed with the
+                  following error.
                 </>
               ) : (
                 <>
-                  <strong>{selectedFile?.name}</strong> is being uploaded to{" "}
-                  <strong>{dirPath}</strong>, please wait...
+                  Files are being uploaded to <strong>{dirPath}</strong>, please
+                  wait...
                 </>
               )}
             </DialogDescription>
@@ -185,8 +175,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
           <DialogHeader>
             <DialogTitle>Confirmation</DialogTitle>
             <DialogDescription>
-              <strong>{selectedFile?.name}</strong> already exists, would you
-              like to replace the existing file?
+              Some files already exist. Would you like to replace them?
             </DialogDescription>
 
             <DialogFooter>
