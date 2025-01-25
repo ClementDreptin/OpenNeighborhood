@@ -8,7 +8,6 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { ReloadIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { useFilesContext } from "@/contexts/FilesContext";
 import { displayErrorToast } from "@/lib/utils";
 
@@ -37,6 +37,8 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
   const [errorMessage, setErrorMessage] = React.useState("");
+  const [uploadProgress, setUploadProgress] = React.useState(0);
+  const [currentFileName, setCurrentFileName] = React.useState("");
   const [, startTransition] = React.useTransition();
   const isError = errorMessage !== "";
 
@@ -76,9 +78,14 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const proceedWithUpload = async (filesToUpload: File[]) => {
     setModalOpen(true);
     setErrorMessage("");
+    setUploadProgress(0);
 
     try {
-      for (const file of filesToUpload) {
+      for (let i = 0; i < filesToUpload.length; i++) {
+        const file = filesToUpload[i];
+        setCurrentFileName(file.name);
+        setUploadProgress(i);
+
         const formData = new FormData();
         formData.set(
           "ipAddress",
@@ -155,8 +162,15 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
           </DialogHeader>
 
           {!isError && (
-            <div className="m-auto">
-              <ReloadIcon className="mr-2 h-12 w-12 animate-spin text-muted-foreground" />
+            <div className="flex flex-col gap-2">
+              <p>
+                Uploading <strong>{currentFileName}</strong>...
+              </p>
+              <p>
+                {uploadProgress.toLocaleString()}&nbsp;/&nbsp;
+                {selectedFiles.length.toLocaleString()}
+              </p>
+              <Progress value={(uploadProgress / selectedFiles.length) * 100} />
             </div>
           )}
 
