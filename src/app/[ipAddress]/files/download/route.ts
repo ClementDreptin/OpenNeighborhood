@@ -44,8 +44,8 @@ export async function GET(request: NextRequest) {
     downloadDirectory(ipAddress, filePath, archive)
       .then(() => archive.finalize())
       .catch((error: unknown) => {
-        // Destroying the archive on error allow the download to be completely
-        // on the client
+        // Destroying the archive on error allows the download to be completely
+        // canceled on the client
         archive.destroy(error instanceof Error ? error : undefined);
       });
 
