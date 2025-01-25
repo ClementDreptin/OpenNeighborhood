@@ -36,11 +36,16 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<FileWithPath[]>([]);
-  const [errorMessage, setErrorMessage] = React.useState("");
-  const [uploadProgress, setUploadProgress] = React.useState(0);
   const [currentFileName, setCurrentFileName] = React.useState("");
-  const [, startTransition] = React.useTransition();
+  const [uploadProgress, setUploadProgress] = React.useState(0);
+  const [directoriesToCreate, setDirectoriesToCreate] = React.useState<
+    string[]
+  >([]);
+  const [directoryCreationProgress, setDirectoryCreationProgress] =
+    React.useState(0);
+  const [errorMessage, setErrorMessage] = React.useState("");
   const isError = errorMessage !== "";
+  const [, startTransition] = React.useTransition();
 
   const onDrop = (acceptedFiles: FileWithPath[]) => {
     if (acceptedFiles.length === 0) {
@@ -71,11 +76,14 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
     setModalOpen(true);
 
     const directories = getDirectories(filesToUpload);
+    setDirectoriesToCreate(directories);
+
     const formData = new FormData();
     formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
 
     try {
-      for (const directory of directories) {
+      for (let i = 0; i < directories.length; i++) {
+        const directory = directories[i];
         formData.set("parentPath", dirPath);
         formData.set("dirname", directory);
 
@@ -83,12 +91,14 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
         if (result.error != null) {
           throw result.error;
         }
+
+        setDirectoryCreationProgress(i);
       }
+      setDirectoriesToCreate([]);
 
       for (let i = 0; i < filesToUpload.length; i++) {
         const file = filesToUpload[i];
         setCurrentFileName(file.name);
-        setUploadProgress(i);
 
         const fileDir = pathDirname(file.path ?? "");
 
@@ -103,6 +113,8 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
         if (!response.ok) {
           throw new Error(await response.text());
         }
+
+        setUploadProgress(i);
       }
 
       setModalOpen(false);
@@ -151,6 +163,11 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
                   Uploading files to <strong>{dirPath}</strong> failed with the
                   following error.
                 </>
+              ) : directoriesToCreate.length > 0 ? (
+                <>
+                  Creating directories in <strong>{dirPath}</strong>, please
+                  wait...
+                </>
               ) : (
                 <>
                   Files are being uploaded to <strong>{dirPath}</strong>, please
@@ -162,14 +179,40 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
 
           {!isError ? (
             <div className="flex flex-col gap-2">
-              <p>
-                Uploading <strong>{currentFileName}</strong>...
-              </p>
-              <p>
-                {uploadProgress.toLocaleString()}&nbsp;/&nbsp;
-                {selectedFiles.length.toLocaleString()}
-              </p>
-              <Progress value={(uploadProgress / selectedFiles.length) * 100} />
+              {directoriesToCreate.length > 0 ? (
+                <>
+                  <p>
+                    Creating directory{" "}
+                    <strong>
+                      {directoriesToCreate[directoryCreationProgress]}
+                    </strong>
+                    ...
+                  </p>
+                  <p>
+                    {directoryCreationProgress.toLocaleString()}&nbsp;/&nbsp;
+                    {directoriesToCreate.length.toLocaleString()}
+                  </p>
+                  <Progress
+                    value={
+                      (directoryCreationProgress / directoriesToCreate.length) *
+                      100
+                    }
+                  />
+                </>
+              ) : (
+                <>
+                  <p>
+                    Uploading <strong>{currentFileName}</strong>...
+                  </p>
+                  <p>
+                    {uploadProgress.toLocaleString()}&nbsp;/&nbsp;
+                    {selectedFiles.length.toLocaleString()}
+                  </p>
+                  <Progress
+                    value={(uploadProgress / selectedFiles.length) * 100}
+                  />
+                </>
+              )}
             </div>
           ) : (
             <p role="alert" className="text-destructive">
