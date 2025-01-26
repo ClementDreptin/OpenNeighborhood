@@ -8,19 +8,21 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { ReloadIcon } from "@radix-ui/react-icons";
-import { Button } from "@/components/ui/button";
+import ActionModal from "@/components/action-modal";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { useFilesContext } from "@/contexts/FilesContext";
-import { displayErrorToast } from "@/lib/utils";
+import {
+  createDirectoryAction,
+  deleteFileAction,
+  type FormAction,
+} from "@/lib/actions";
 
 interface UploadDropzoneProps {
   children: React.ReactNode;
@@ -35,90 +37,144 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const { files } = useFilesContext();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = React.useState<FileWithPath[]>([]);
+  const [uploadProgress, setUploadProgress] = React.useState(0);
+  const [directoriesToCreate, setDirectoriesToCreate] = React.useState<
+    string[]
+  >([]);
+  const [directoryCreationProgress, setDirectoryCreationProgress] =
+    React.useState(0);
   const [errorMessage, setErrorMessage] = React.useState("");
-  const [, startTransition] = React.useTransition();
   const isError = errorMessage !== "";
+  const [, startTransition] = React.useTransition();
+
+  const containsDuplicateFiles = (acceptedFiles: FileWithPath[]) => {
+    const rootFileNames = getRootFileNames(acceptedFiles);
+
+    return files.some((file) =>
+      rootFileNames.some(
+        (rootFileName) =>
+          rootFileName.toLowerCase() === file.name.toLowerCase(),
+      ),
+    );
+  };
 
   const onDrop = (acceptedFiles: FileWithPath[]) => {
+    setSelectedFiles(acceptedFiles);
     if (acceptedFiles.length === 0) {
       return;
     }
 
-    const containsDirectory = acceptedFiles.some(
-      (file) => file.path?.indexOf("/") !== file.path?.lastIndexOf("/"),
-    );
-    if (containsDirectory) {
-      displayErrorToast("Uploading a directory isn't supported yet.");
-      return;
-    }
-
-    if (acceptedFiles.length > 1) {
-      displayErrorToast("Uploading multiple files isn't supported yet.");
-      return;
-    }
-
-    const file = acceptedFiles[0];
-
-    const formData = new FormData();
-    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
-    formData.set("dirPath", dirPath);
-    formData.set("file", file);
-
-    setErrorMessage("");
-    setSelectedFile(file);
-
-    const fileAlreadyExists = files.some(
-      // Xbox file names are not case sensitive, just like Windows...
-      ({ name }) => name.toLowerCase() === file.name.toLocaleLowerCase(),
-    );
-
-    if (fileAlreadyExists) {
+    if (containsDuplicateFiles(acceptedFiles)) {
       setConfirmModalOpen(true);
-      return;
+    } else {
+      void proceedWithUpload(acceptedFiles);
     }
-
-    proceedWithUpload(formData);
   };
 
-  const confirmUpload = () => {
-    if (selectedFile == null) {
-      throw new Error("'selectedFile' is null, this should not happen.");
-    }
+  const deleteDuplicateDirectories = async () => {
+    const existingDirectories = files.filter((file) => file.isDirectory);
+    const rootFileNames = getRootFileNames(selectedFiles);
 
     const formData = new FormData();
     formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
-    formData.set("dirPath", dirPath);
-    formData.set("file", selectedFile);
+    formData.set("isDirectory", "true");
+
+    for (const directory of existingDirectories) {
+      for (const selectedFile of rootFileNames) {
+        if (directory.name === selectedFile) {
+          formData.set(
+            "filePath",
+            (!dirPath.endsWith("\\") ? `${dirPath}\\` : dirPath) +
+              directory.name,
+          );
+
+          const result = await deleteFileAction(formData);
+          if (!result.success) {
+            return result;
+          }
+        }
+      }
+    }
+
+    return { success: true };
+  };
+
+  const confirmUpload: FormAction = async () => {
+    const result = await deleteDuplicateDirectories();
+    if (!result.success) {
+      return result;
+    }
 
     setConfirmModalOpen(false);
-    proceedWithUpload(formData);
+    void proceedWithUpload(selectedFiles);
+
+    return { success: true };
   };
 
-  const proceedWithUpload = (formData: FormData) => {
+  const createDirectoryStructure = async (filesToUpload: FileWithPath[]) => {
+    const directories = getDirectories(filesToUpload);
+    setDirectoriesToCreate(directories);
+
+    const formData = new FormData();
+    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+
+    for (let i = 0; i < directories.length; i++) {
+      const directory = directories[i];
+      setDirectoryCreationProgress(i);
+
+      formData.set("parentPath", dirPath);
+      formData.set("dirname", directory);
+
+      const result = await createDirectoryAction(formData);
+      if (result.error != null) {
+        throw result.error;
+      }
+    }
+
+    setDirectoriesToCreate([]);
+  };
+
+  const uploadFiles = async (filesToUpload: FileWithPath[]) => {
+    const formData = new FormData();
+    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
+      setUploadProgress(i);
+
+      const fileDir = pathDirname(file.path ?? "");
+
+      formData.set("dirPath", `${dirPath}\\${fileDir}`);
+      formData.set("file", file);
+
+      const response = await fetch(`${pathname}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+    }
+  };
+
+  const proceedWithUpload = async (filesToUpload: FileWithPath[]) => {
     setModalOpen(true);
 
-    fetch(`${pathname}/upload`, {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(
-            `Request failed with status code ${response.status.toString()}.`,
-          );
-        }
+    try {
+      await createDirectoryStructure(filesToUpload);
+      await uploadFiles(filesToUpload);
 
-        setModalOpen(false);
-        startTransition(() => {
-          router.refresh();
-        });
-      })
-      .catch((error: unknown) => {
-        if (error instanceof Error) {
-          setErrorMessage(error.message);
-        }
+      setModalOpen(false);
+      startTransition(() => {
+        router.refresh();
       });
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      }
+    }
   };
 
   const preventClose = (event: Event) => {
@@ -140,7 +196,6 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
 
       {children}
 
-      {/* Upload progress modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent
           displayCloseButton={isError}
@@ -148,56 +203,192 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
           onEscapeKeyDown={!isError ? preventClose : undefined}
           onOpenAutoFocus={preventClose}
         >
-          <DialogHeader>
-            <DialogTitle>Upload progress</DialogTitle>
-            <DialogDescription>
-              {isError ? (
-                <>
-                  Uploading <strong>{selectedFile?.name}</strong> to{" "}
-                  <strong>{dirPath}</strong> failed with the following error.
-                </>
-              ) : (
-                <>
-                  <strong>{selectedFile?.name}</strong> is being uploaded to{" "}
-                  <strong>{dirPath}</strong>, please wait...
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-
-          {!isError && (
-            <div className="m-auto">
-              <ReloadIcon className="h-12 w-12 animate-spin text-muted-foreground" />
-            </div>
-          )}
-
           {isError ? (
-            <p role="alert" className="text-destructive">
-              {errorMessage}
-            </p>
-          ) : null}
+            <ErrorModalContent message={errorMessage} />
+          ) : directoriesToCreate.length > 0 ? (
+            <DirectoryCreationModalContent
+              names={directoriesToCreate}
+              progress={directoryCreationProgress}
+            />
+          ) : (
+            <UploadModalContent
+              files={selectedFiles}
+              progress={uploadProgress}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
-      {/* Confirm upload modal */}
-      <Dialog open={confirmModalOpen} onOpenChange={setConfirmModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmation</DialogTitle>
-            <DialogDescription>
-              <strong>{selectedFile?.name}</strong> already exists, would you
-              like to replace the existing file?
-            </DialogDescription>
-
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="secondary">No</Button>
-              </DialogClose>
-              <Button onClick={confirmUpload}>Yes</Button>
-            </DialogFooter>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <ActionModal
+        open={confirmModalOpen}
+        onOpenChange={setConfirmModalOpen}
+        action={confirmUpload}
+        description="Some files already exist. Would you like to replace them?"
+      />
     </div>
   );
+}
+
+interface DirectoryCreationModalContentProps {
+  names: string[];
+  progress: number;
+}
+
+function DirectoryCreationModalContent({
+  names,
+  progress,
+}: DirectoryCreationModalContentProps) {
+  const searchParams = useSearchParams();
+  const dirPath = searchParams.get("path") ?? "";
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Upload progress</DialogTitle>
+        <DialogDescription>
+          Creating directories in <strong>{dirPath}</strong>, please wait...
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="flex flex-col gap-2">
+        <p>
+          Creating directory <strong>{names[progress]}</strong>...
+        </p>
+        <p>
+          {progress.toLocaleString()}&nbsp;/&nbsp;
+          {names.length.toLocaleString()}
+        </p>
+        <Progress value={(progress / names.length) * 100} />
+      </div>
+    </>
+  );
+}
+
+interface UploadModalContentProps {
+  files: FileWithPath[];
+  progress: number;
+}
+
+function UploadModalContent({ files, progress }: UploadModalContentProps) {
+  const searchParams = useSearchParams();
+  const dirPath = searchParams.get("path") ?? "";
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Upload progress</DialogTitle>
+        <DialogDescription>
+          Files are being uploaded to <strong>{dirPath}</strong>, please wait...
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="flex flex-col gap-2">
+        <p>
+          Uploading <strong>{files[progress].name}</strong>...
+        </p>
+        <p>
+          {progress.toLocaleString()}&nbsp;/&nbsp;
+          {files.length.toLocaleString()}
+        </p>
+        <Progress value={(progress / files.length) * 100} />
+      </div>
+    </>
+  );
+}
+
+interface ErrorModalContentProps {
+  message: string;
+}
+
+function ErrorModalContent({ message }: ErrorModalContentProps) {
+  const searchParams = useSearchParams();
+  const dirPath = searchParams.get("path") ?? "";
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Upload progress</DialogTitle>
+        <DialogDescription>
+          Uploading files to <strong>{dirPath}</strong> failed with the
+          following error.
+        </DialogDescription>
+      </DialogHeader>
+
+      <p role="alert" className="text-destructive">
+        {message}
+      </p>
+    </>
+  );
+}
+
+function getPathParts(path: string) {
+  // When a directory is dropped, the files at its root will have a path that looks
+  // like "./<filename>", so if we split on "/" we get [".", "<filename>"], which is
+  // why we need to filter out the "."
+  return path.split("/").filter((part) => part !== "" && part !== ".");
+}
+
+function pathDirname(path: string) {
+  const parts = getPathParts(path);
+
+  // The last part is the file name so we remove it
+  parts.pop();
+
+  return parts.join("/");
+}
+
+function getDirectories(files: FileWithPath[]) {
+  // For a list of files, extract all the directories
+  //
+  // /dir1/dir2/file2.txt      /dir1
+  // /dir1/dir2/file3.txt  =>  /dir1/dir2
+  // /dir1/dir3/file4.txt      /dir1/dir3
+  // /dir1/dir3/file5.txt
+  // /dir1/file.txt
+
+  const directories = new Set<string>();
+
+  // Recursively get all the parent directories of each files
+  files.forEach((file) => {
+    let currentPath = pathDirname(file.path ?? "");
+
+    while (currentPath !== "") {
+      directories.add(currentPath);
+      currentPath = pathDirname(currentPath);
+    }
+  });
+
+  // Sort the directories by depth
+  //
+  // /dir1/dir2           /dir1
+  // /dir1            =>  /dir1/dir2
+  // /dir1/dir2/dir3      /dir1/dir2/dir3
+
+  const sortedDirectories = Array.from(directories).sort((a, b) => {
+    const depthA = a.split("/").length;
+    const depthB = b.split("/").length;
+    return depthA - depthB;
+  });
+
+  return sortedDirectories;
+}
+
+function getRootFileNames(files: FileWithPath[]) {
+  // For a list of files, extract all the file and directory names
+  // at the root
+  //
+  // /dir1/dir2/file3.txt      dir1
+  // /dir1/file2.txt       =>  file1.txt
+  // file1.txt
+
+  const rootFileNames = new Set<string>();
+
+  for (const file of files) {
+    const parts = getPathParts(file.path ?? "");
+    if (parts.length > 0) {
+      rootFileNames.add(parts[0]);
+    }
+  }
+
+  return Array.from(rootFileNames);
 }
