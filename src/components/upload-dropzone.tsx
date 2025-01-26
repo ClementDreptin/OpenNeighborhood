@@ -2,12 +2,7 @@
 
 import * as React from "react";
 import { useDropzone, type FileWithPath } from "react-dropzone";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import ActionModal from "@/components/action-modal";
 import {
   Dialog,
@@ -23,6 +18,7 @@ import {
   deleteFileAction,
   type FormAction,
 } from "@/lib/actions";
+import { useDirPath, useIpAddress } from "@/lib/hooks";
 
 interface UploadDropzoneProps {
   children: React.ReactNode;
@@ -31,9 +27,8 @@ interface UploadDropzoneProps {
 export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { ipAddress } = useParams();
-  const searchParams = useSearchParams();
-  const dirPath = searchParams.get("path") ?? "";
+  const ipAddress = useIpAddress();
+  const dirPath = useDirPath();
   const { files } = useFilesContext();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
@@ -77,7 +72,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
     const rootFileNames = getRootFileNames(selectedFiles);
 
     const formData = new FormData();
-    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("ipAddress", ipAddress);
     formData.set("isDirectory", "true");
 
     for (const directory of existingDirectories) {
@@ -117,7 +112,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
     setDirectoriesToCreate(directories);
 
     const formData = new FormData();
-    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("ipAddress", ipAddress);
 
     for (let i = 0; i < directories.length; i++) {
       const directory = directories[i];
@@ -137,7 +132,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
 
   const uploadFiles = async (filesToUpload: FileWithPath[]) => {
     const formData = new FormData();
-    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("ipAddress", ipAddress);
 
     for (let i = 0; i < filesToUpload.length; i++) {
       const file = filesToUpload[i];
@@ -238,8 +233,7 @@ function DirectoryCreationModalContent({
   names,
   progress,
 }: DirectoryCreationModalContentProps) {
-  const searchParams = useSearchParams();
-  const dirPath = searchParams.get("path") ?? "";
+  const dirPath = useDirPath();
 
   return (
     <>
@@ -270,8 +264,7 @@ interface UploadModalContentProps {
 }
 
 function UploadModalContent({ files, progress }: UploadModalContentProps) {
-  const searchParams = useSearchParams();
-  const dirPath = searchParams.get("path") ?? "";
+  const dirPath = useDirPath();
 
   return (
     <>
@@ -301,8 +294,7 @@ interface ErrorModalContentProps {
 }
 
 function ErrorModalContent({ message }: ErrorModalContentProps) {
-  const searchParams = useSearchParams();
-  const dirPath = searchParams.get("path") ?? "";
+  const dirPath = useDirPath();
 
   return (
     <>

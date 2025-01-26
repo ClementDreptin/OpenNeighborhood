@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useParams, useSearchParams } from "next/navigation";
 import ActionModal from "@/components/action-modal";
 import {
   ContextMenu,
@@ -11,6 +10,7 @@ import {
 } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
 import { createDirectoryAction } from "@/lib/actions";
+import { useDirPath, useIpAddress } from "@/lib/hooks";
 
 const DIRNAME_INPUT_ID = "dirname";
 
@@ -21,14 +21,13 @@ interface FilesPageContextMenuProps {
 export default function FilesPageContextMenu({
   children,
 }: FilesPageContextMenuProps) {
-  const { ipAddress } = useParams();
-  const searchParams = useSearchParams();
-  const parentPath = searchParams.get("path") ?? "";
+  const ipAddress = useIpAddress();
+  const parentPath = useDirPath();
   const [createDirectoryModalOpen, setCreateDirectoryModalOpen] =
     React.useState(false);
 
   const handleCreateDirectory = (formData: FormData) => {
-    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("ipAddress", ipAddress);
     formData.set("parentPath", parentPath);
 
     return createDirectoryAction(formData);

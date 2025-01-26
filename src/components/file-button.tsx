@@ -2,12 +2,7 @@
 
 import * as React from "react";
 import type { StaticImageData } from "next/image";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { IconButton } from "./ui/icon-button";
 import directoryIcon from "@/../public/directory.svg";
 import fileIcon from "@/../public/file.svg";
@@ -32,6 +27,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { deleteFileAction, launchXexAction } from "@/lib/actions";
 import type { File } from "@/lib/consoles";
+import { useDirPath, useIpAddress } from "@/lib/hooks";
 import { bytesToSize, displayErrorToast, unixTimeToString } from "@/lib/utils";
 
 interface FileButtonProps {
@@ -41,9 +37,8 @@ interface FileButtonProps {
 export default function FileButton({ file }: FileButtonProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { ipAddress } = useParams();
-  const searchParams = useSearchParams();
-  const parentPath = searchParams.get("path") ?? "";
+  const ipAddress = useIpAddress();
+  const parentPath = useDirPath();
   const fullPath =
     (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
@@ -64,7 +59,7 @@ export default function FileButton({ file }: FileButtonProps) {
 
   const handleLaunch = () => {
     const formData = new FormData();
-    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("ipAddress", ipAddress);
     formData.set("filePath", fullPath);
 
     launchXexAction(formData)
@@ -85,10 +80,7 @@ export default function FileButton({ file }: FileButtonProps) {
       `${window.location.pathname}/download`,
       window.location.origin,
     );
-    url.searchParams.set(
-      "ipAddress",
-      typeof ipAddress === "string" ? ipAddress : "",
-    );
+    url.searchParams.set("ipAddress", ipAddress);
     url.searchParams.set("path", fullPath);
     url.searchParams.set("isDirectory", file.isDirectory.toString());
 
@@ -99,7 +91,7 @@ export default function FileButton({ file }: FileButtonProps) {
 
   const handleDelete = () => {
     const formData = new FormData();
-    formData.set("ipAddress", typeof ipAddress === "string" ? ipAddress : "");
+    formData.set("ipAddress", ipAddress);
     formData.set("filePath", fullPath);
     formData.set("isDirectory", file.isDirectory.toString());
 
