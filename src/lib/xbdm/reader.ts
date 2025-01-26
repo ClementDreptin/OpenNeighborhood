@@ -43,11 +43,22 @@ export function createSocketReader(socket: Socket): SocketReader {
         const line = buffer.subarray(0, newLineIndex).toString();
         buffer = buffer.subarray(newLineIndex + LINE_DELIMITER.length);
 
+        socket.off("data", onData);
         resolve(line);
       };
 
-      socket.once("data", onData);
-      socket.once("error", reject);
+      const onEnd = () => {
+        socket.off("data", onData);
+      };
+
+      const onError = (error: Error) => {
+        socket.off("data", onData);
+        reject(error);
+      };
+
+      socket.on("data", onData);
+      socket.once("end", onEnd);
+      socket.once("error", onError);
     });
   };
 
@@ -77,11 +88,22 @@ export function createSocketReader(socket: Socket): SocketReader {
         const result = buffer.subarray(0, length);
         buffer = buffer.subarray(length);
 
+        socket.off("data", onData);
         resolve(result);
       };
 
-      socket.once("data", onData);
-      socket.once("error", reject);
+      const onEnd = () => {
+        socket.off("data", onData);
+      };
+
+      const onError = (error: Error) => {
+        socket.off("data", onData);
+        reject(error);
+      };
+
+      socket.on("data", onData);
+      socket.once("end", onEnd);
+      socket.once("error", onError);
     });
   };
 
@@ -122,7 +144,8 @@ export function createSocketReader(socket: Socket): SocketReader {
     });
 
     // Map socket events to controller events
-    socket.on("data", (data) => {
+
+    const onData = (data: Buffer) => {
       // If a maxSize was defined and will be reached with this chunk, cut the
       // chunk to make sure no more than maxSize bytes are pushed in total
       if (maxSize != null && bytesRead + data.length > maxSize) {
@@ -134,13 +157,21 @@ export function createSocketReader(socket: Socket): SocketReader {
 
       readable.push(data);
       bytesRead += data.length;
-    });
-    socket.on("end", () => {
+    };
+
+    const onEnd = () => {
       readable.push(null);
-    });
-    socket.on("error", (error) => {
+      socket.off("data", onData);
+    };
+
+    const onError = (error: Error) => {
       readable.destroy(error);
-    });
+      socket.off("data", onData);
+    };
+
+    socket.on("data", onData);
+    socket.once("end", onEnd);
+    socket.once("error", onError);
 
     return readable;
   };
