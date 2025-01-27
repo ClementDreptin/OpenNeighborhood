@@ -23,6 +23,7 @@ export default function Navbar() {
   const lastPartRef = React.useRef<HTMLLIElement | null>(null);
 
   const getParts = () => {
+    // The home part is always there
     const parts: NavbarItem[] = [
       {
         label: "Home",
@@ -30,6 +31,7 @@ export default function Navbar() {
       },
     ];
 
+    // Followed by the IP address if on a /[ipAddress]/* route
     if (ipAddress !== "") {
       parts.push({
         label: ipAddress,
@@ -37,6 +39,8 @@ export default function Navbar() {
       });
     }
 
+    // And finally a part for each parent directory and the current
+    // directory itself
     if (dirPath !== "") {
       const pathParts = dirPath
         .split("\\")
@@ -44,6 +48,7 @@ export default function Navbar() {
         .map((dirName, index, array) => ({
           label: dirName,
           href: `/${ipAddress}/files?${new URLSearchParams({
+            // Recreate the path from the root to this directory
             path: array.slice(0, index + 1).join("\\"),
           })}`,
         }));
@@ -62,6 +67,7 @@ export default function Navbar() {
     <Breadcrumb>
       <BreadcrumbList className="text-md navbar-scrollbar flex-nowrap overflow-x-auto">
         {getParts().map((part, index, parts) =>
+          // Add a link followed by a separator for each part except the last one
           index !== parts.length - 1 ? (
             <React.Fragment key={part.href}>
               <BreadcrumbItem>
@@ -74,6 +80,7 @@ export default function Navbar() {
               <BreadcrumbSeparator />
             </React.Fragment>
           ) : (
+            // Make the last part a regular text instead of a link
             <BreadcrumbItem key={part.href} ref={lastPartRef}>
               <BreadcrumbPage className="whitespace-nowrap">
                 {part.label}
