@@ -23,9 +23,7 @@ export default function RootLayout({ children }: LayoutProps) {
       <body className={`${geistSans.className} antialiased`}>
         <Providers>
           <div className="flex min-h-screen bg-background p-4">
-            <Card className="flex-grow p-4">
-              <div className="h-full">{children}</div>
-            </Card>
+            <Card className="flex-grow p-4">{children}</Card>
           </div>
 
           <Toaster />
