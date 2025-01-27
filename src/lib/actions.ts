@@ -7,6 +7,7 @@ import {
   deleteConsole,
   deleteFile,
   launchXex,
+  shutdown,
 } from "./consoles";
 import "server-only";
 
@@ -129,6 +130,27 @@ export const createDirectoryAction: FormAction = async (formData) => {
   }
 
   revalidatePath(`/${ipAddress}/files`);
+
+  return { success: true };
+};
+
+export const shutdownAction: FormAction = async (formData) => {
+  const { ipAddress, error } = checkFormData(formData, ["ipAddress"]);
+  if (error != null) {
+    return {
+      success: false,
+      error,
+    };
+  }
+
+  try {
+    await shutdown(ipAddress);
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err : new Error("Something went wrong."),
+    };
+  }
 
   return { success: true };
 };

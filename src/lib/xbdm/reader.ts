@@ -46,6 +46,7 @@ export function createSocketReader(socket: Socket): SocketReader {
         socket.off("data", onData);
         socket.off("end", onEnd);
         socket.off("error", onError);
+        socket.off("close", onClose);
         resolve(line);
       };
 
@@ -58,9 +59,21 @@ export function createSocketReader(socket: Socket): SocketReader {
         reject(error);
       };
 
+      const onClose = (hadError: boolean) => {
+        socket.off("data", onData);
+        reject(
+          new Error(
+            hadError
+              ? "Connection closes due to a transmission error."
+              : "Connection was closed by the console.",
+          ),
+        );
+      };
+
       socket.on("data", onData);
       socket.once("end", onEnd);
       socket.once("error", onError);
+      socket.once("close", onClose);
     });
   };
 
@@ -93,6 +106,7 @@ export function createSocketReader(socket: Socket): SocketReader {
         socket.off("data", onData);
         socket.off("end", onEnd);
         socket.off("error", onError);
+        socket.off("close", onClose);
         resolve(result);
       };
 
@@ -105,9 +119,21 @@ export function createSocketReader(socket: Socket): SocketReader {
         reject(error);
       };
 
+      const onClose = (hadError: boolean) => {
+        socket.off("data", onData);
+        reject(
+          new Error(
+            hadError
+              ? "Connection closes due to a transmission error."
+              : "Connection was closed by the console.",
+          ),
+        );
+      };
+
       socket.on("data", onData);
       socket.once("end", onEnd);
       socket.once("error", onError);
+      socket.once("close", onClose);
     });
   };
 
@@ -164,18 +190,30 @@ export function createSocketReader(socket: Socket): SocketReader {
     };
 
     const onEnd = () => {
-      readable.push(null);
       socket.off("data", onData);
+      readable.push(null);
     };
 
     const onError = (error: Error) => {
-      readable.destroy(error);
       socket.off("data", onData);
+      readable.destroy(error);
+    };
+
+    const onClose = (hadError: boolean) => {
+      socket.off("data", onData);
+      readable.destroy(
+        new Error(
+          hadError
+            ? "Connection closes due to a transmission error."
+            : "Connection was closed by the console.",
+        ),
+      );
     };
 
     socket.on("data", onData);
     socket.once("end", onEnd);
     socket.once("error", onError);
+    socket.once("close", onClose);
 
     return readable;
   };
