@@ -44,6 +44,8 @@ export function createSocketReader(socket: Socket): SocketReader {
         buffer = buffer.subarray(newLineIndex + LINE_DELIMITER.length);
 
         socket.off("data", onData);
+        socket.off("end", onEnd);
+        socket.off("error", onError);
         resolve(line);
       };
 
@@ -89,6 +91,8 @@ export function createSocketReader(socket: Socket): SocketReader {
         buffer = buffer.subarray(length);
 
         socket.off("data", onData);
+        socket.off("end", onEnd);
+        socket.off("error", onError);
         resolve(result);
       };
 
