@@ -20,6 +20,7 @@ interface NavbarItem {
 export default function Navbar() {
   const ipAddress = useIpAddress();
   const dirPath = useDirPath();
+  const lastPartRef = React.useRef<HTMLLIElement | null>(null);
 
   const getParts = () => {
     const parts: NavbarItem[] = [
@@ -53,22 +54,30 @@ export default function Navbar() {
     return parts;
   };
 
+  React.useEffect(() => {
+    lastPartRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [dirPath]);
+
   return (
     <Breadcrumb>
-      <BreadcrumbList className="text-md">
+      <BreadcrumbList className="text-md navbar-scrollbar flex-nowrap overflow-x-auto">
         {getParts().map((part, index, parts) =>
           index !== parts.length - 1 ? (
             <React.Fragment key={part.href}>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href={part.href}>{part.label}</Link>
+                  <Link className="whitespace-nowrap" href={part.href}>
+                    {part.label}
+                  </Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
             </React.Fragment>
           ) : (
-            <BreadcrumbItem key={part.href}>
-              <BreadcrumbPage>{part.label}</BreadcrumbPage>
+            <BreadcrumbItem key={part.href} ref={lastPartRef}>
+              <BreadcrumbPage className="whitespace-nowrap">
+                {part.label}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           ),
         )}
