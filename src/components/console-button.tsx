@@ -12,8 +12,10 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { IconButton } from "@/components/ui/icon-button";
-import { deleteConsoleAction } from "@/lib/actions";
+import { Separator } from "@/components/ui/separator";
+import { deleteConsoleAction, shutdownAction } from "@/lib/actions";
 import type { Console } from "@/lib/consoles";
+import { displayErrorToast } from "@/lib/utils";
 
 interface ConsoleButtonProps {
   console: Console;
@@ -25,6 +27,23 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
 
   const handleClick = () => {
     router.push(`/${console.ipAddress}`);
+  };
+
+  const handleShutdown = () => {
+    const formData = new FormData();
+    formData.set("ipAddress", console.ipAddress);
+
+    shutdownAction(formData)
+      .then((result) => {
+        if (result.error != null) {
+          displayErrorToast(result.error.message);
+        }
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error) {
+          displayErrorToast(error.message);
+        }
+      });
   };
 
   const handleDelete = () => {
@@ -52,6 +71,12 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
           </IconButton>
         </ContextMenuTrigger>
         <ContextMenuContent>
+          <ContextMenuItem inset onClick={handleShutdown}>
+            Shutdown
+          </ContextMenuItem>
+
+          <Separator />
+
           <ContextMenuItem inset onClick={openModal}>
             Delete
           </ContextMenuItem>
