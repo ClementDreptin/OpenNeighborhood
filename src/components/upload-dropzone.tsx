@@ -182,7 +182,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   });
 
   return (
-    <div {...getRootProps()} className="relative h-full">
+    <div {...getRootProps()} className="relative flex-grow">
       <input {...getInputProps()} />
 
       {isDragActive && (

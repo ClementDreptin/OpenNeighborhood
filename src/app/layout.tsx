@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import { Card } from "@/components/ui/card";
 import Providers from "@/providers";
 import "./globals.css";
+import Navbar from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import type { LayoutProps } from "@/types/next";
 
@@ -22,10 +23,14 @@ export default function RootLayout({ children }: LayoutProps) {
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
         <Providers>
-          <div className="flex min-h-screen bg-background p-4">
-            <Card className="flex-grow p-4">
-              <div className="h-full">{children}</div>
+          <div className="flex min-h-screen flex-col gap-4 bg-background p-4">
+            <Card className="p-4">
+              <React.Suspense>
+                <Navbar />
+              </React.Suspense>
             </Card>
+
+            <Card className="flex flex-grow flex-col p-4">{children}</Card>
           </div>
 
           <Toaster />

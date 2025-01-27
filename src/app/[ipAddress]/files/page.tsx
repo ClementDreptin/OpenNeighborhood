@@ -26,7 +26,7 @@ export default async function FilesPage(props: PageProps) {
       <FilesPageContextMenu>
         <UploadDropzone>
           {files.length > 0 ? (
-            <div className="grid h-full auto-rows-min grid-cols-autofill gap-4">
+            <div className="grid auto-rows-min grid-cols-autofill gap-4">
               {files.map((file) => (
                 <FileButton key={file.name} file={file} />
               ))}

@@ -40,7 +40,9 @@ export default function FilesPageContextMenu({
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger>{children}</ContextMenuTrigger>
+        <ContextMenuTrigger className="flex flex-grow">
+          {children}
+        </ContextMenuTrigger>
 
         <ContextMenuContent>
           <ContextMenuItem inset onClick={openCreateDirectoryModal}>
