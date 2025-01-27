@@ -22,8 +22,8 @@ export default function RootLayout({ children }: LayoutProps) {
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
         <Providers>
-          <div className="flex min-h-screen bg-background p-4">
-            <Card className="flex-grow p-4">{children}</Card>
+          <div className="flex min-h-screen flex-col gap-4 bg-background p-4">
+            <Card className="flex flex-grow p-4">{children}</Card>
           </div>
 
           <Toaster />
