@@ -49,7 +49,7 @@ export default function Navbar() {
           label: dirName,
           href: `/${ipAddress}/files?${new URLSearchParams({
             // Recreate the path from the root to this directory
-            path: array.slice(0, index + 1).join("\\"),
+            path: array.slice(0, index + 1).join("\\") + "\\",
           })}`,
         }));
 
