@@ -12,57 +12,63 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useDirPath, useIpAddress } from "@/lib/hooks";
 
+interface NavbarItem {
+  label: string;
+  href: string;
+}
+
 export default function Navbar() {
   const ipAddress = useIpAddress();
   const dirPath = useDirPath();
-  const parts = dirPath.split("\\").filter(Boolean);
+
+  const getParts = () => {
+    const parts: NavbarItem[] = [
+      {
+        label: "Home",
+        href: "/",
+      },
+    ];
+
+    if (ipAddress !== "") {
+      parts.push({
+        label: ipAddress,
+        href: `/${ipAddress}`,
+      });
+    }
+
+    if (dirPath !== "") {
+      const pathParts = dirPath
+        .split("\\")
+        .filter(Boolean)
+        .map((dirName, index, array) => ({
+          label: dirName,
+          href: `/${ipAddress}/files?${new URLSearchParams({
+            path: array.slice(0, index + 1).join("\\"),
+          })}`,
+        }));
+
+      parts.push(...pathParts);
+    }
+
+    return parts;
+  };
 
   return (
     <Breadcrumb>
       <BreadcrumbList className="text-md">
-        <BreadcrumbItem>
-          {ipAddress !== "" ? (
-            <BreadcrumbLink asChild>
-              <Link href="/">Home</Link>
-            </BreadcrumbLink>
-          ) : (
-            <BreadcrumbPage>Home</BreadcrumbPage>
-          )}
-        </BreadcrumbItem>
-
-        {ipAddress !== "" && (
-          <>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              {parts.length > 0 ? (
-                <BreadcrumbLink asChild>
-                  <Link href={`/${ipAddress}`}>{ipAddress}</Link>
-                </BreadcrumbLink>
-              ) : (
-                <BreadcrumbPage>{ipAddress}</BreadcrumbPage>
-              )}
-            </BreadcrumbItem>
-          </>
-        )}
-
-        {parts.length > 0 && <BreadcrumbSeparator />}
-        {parts.map((part, index) =>
+        {getParts().map((part, index, parts) =>
           index !== parts.length - 1 ? (
-            <React.Fragment key={index}>
+            <React.Fragment key={part.href}>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link
-                    href={`/${ipAddress}/files?${new URLSearchParams({ path: parts.slice(0, index + 1).join("\\") })}`}
-                  >
-                    {part}
-                  </Link>
+                  <Link href={part.href}>{part.label}</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
             </React.Fragment>
           ) : (
-            <BreadcrumbItem key={index}>
-              <BreadcrumbPage>{part}</BreadcrumbPage>
+            <BreadcrumbItem key={part.href}>
+              <BreadcrumbPage>{part.label}</BreadcrumbPage>
             </BreadcrumbItem>
           ),
         )}
