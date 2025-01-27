@@ -25,7 +25,9 @@ export default function RootLayout({ children }: LayoutProps) {
         <Providers>
           <div className="flex min-h-screen flex-col gap-4 bg-background p-4">
             <Card className="p-4">
-              <Navbar />
+              <React.Suspense>
+                <Navbar />
+              </React.Suspense>
             </Card>
 
             <Card className="flex flex-grow flex-col p-4">{children}</Card>
