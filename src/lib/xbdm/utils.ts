@@ -94,3 +94,7 @@ export function driveNameToDriveFriendlyName(driveName: string) {
 export function filetimeToUnixTime(fileTime: number) {
   return fileTime / 10_000_000 - 11_644_473_600;
 }
+
+export function unixTimeToFiletime(unixTime: number) {
+  return unixTime * 10_000_000 + 116_444_736_000_000_000;
+}

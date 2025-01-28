@@ -396,6 +396,20 @@ export async function shutdown(ipAddress: string) {
   throw new Error("Couldn't shut the console down.");
 }
 
+export async function syncTime(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  const fileTime = xbdm.unixTimeToFiletime(Date.now() / 1000);
+  const clockHi = Number(BigInt(fileTime) >> BigInt(32));
+  const clockLo = Number(BigInt(fileTime) & BigInt(0xffffffff));
+
+  const command = `setsystime clockhi=0x${clockHi.toString(16)} clocklo=0x${clockLo.toString(16)}`;
+
+  await xbdm.sendCommand(ipAddress, xbdm.STATUS_CODES.Ok, command);
+}
+
 async function getConsolesFromFile() {
   const fileContent = await fs.promises.readFile(CONFIG_FILE_PATH, {
     encoding: "utf-8",
