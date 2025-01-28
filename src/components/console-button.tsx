@@ -13,7 +13,11 @@ import {
 } from "@/components/ui/context-menu";
 import { IconButton } from "@/components/ui/icon-button";
 import { Separator } from "@/components/ui/separator";
-import { deleteConsoleAction, shutdownAction } from "@/lib/actions";
+import {
+  deleteConsoleAction,
+  shutdownAction,
+  syncTimeAction,
+} from "@/lib/actions";
 import type { Console } from "@/lib/consoles";
 import { displayErrorToast } from "@/lib/utils";
 
@@ -34,6 +38,23 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
     formData.set("ipAddress", console.ipAddress);
 
     shutdownAction(formData)
+      .then((result) => {
+        if (result.error != null) {
+          displayErrorToast(result.error.message);
+        }
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error) {
+          displayErrorToast(error.message);
+        }
+      });
+  };
+
+  const handleSyncTime = () => {
+    const formData = new FormData();
+    formData.set("ipAddress", console.ipAddress);
+
+    syncTimeAction(formData)
       .then((result) => {
         if (result.error != null) {
           displayErrorToast(result.error.message);
@@ -73,6 +94,9 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
         <ContextMenuContent>
           <ContextMenuItem inset onClick={handleShutdown}>
             Shutdown
+          </ContextMenuItem>
+          <ContextMenuItem inset onClick={handleSyncTime}>
+            Synchronize Time
           </ContextMenuItem>
 
           <Separator />
