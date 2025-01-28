@@ -27,8 +27,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { deleteFileAction, launchXexAction } from "@/lib/actions";
 import type { File } from "@/lib/consoles";
-import { useDirPath, useIpAddress } from "@/lib/hooks";
-import { bytesToSize, displayErrorToast, unixTimeToString } from "@/lib/utils";
+import { useActionToast, useDirPath, useIpAddress } from "@/lib/hooks";
+import { bytesToSize, unixTimeToString } from "@/lib/utils";
 
 interface FileButtonProps {
   file: File;
@@ -44,6 +44,7 @@ export default function FileButton({ file }: FileButtonProps) {
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] =
     React.useState(false);
+  const launchXex = useActionToast(launchXexAction);
 
   const icon = file.isDirectory
     ? (directoryIcon as StaticImageData)
@@ -62,17 +63,7 @@ export default function FileButton({ file }: FileButtonProps) {
     formData.set("ipAddress", ipAddress);
     formData.set("filePath", fullPath);
 
-    launchXexAction(formData)
-      .then((result) => {
-        if (result.error != null) {
-          displayErrorToast(result.error.message);
-        }
-      })
-      .catch((error: unknown) => {
-        if (error instanceof Error) {
-          displayErrorToast(error.message);
-        }
-      });
+    launchXex(formData);
   };
 
   const handleDownload = () => {
