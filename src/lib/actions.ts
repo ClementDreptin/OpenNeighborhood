@@ -16,179 +16,71 @@ export type FormAction = (
   formData: FormData,
 ) => Promise<{ success: boolean; error?: Error }>;
 
-export const createConsoleAction: FormAction = async (formData: FormData) => {
-  const ipAddressBytes = Array.from(formData.values()).map(String);
+export const createConsoleAction = genericAction(
+  createConsole,
+  ["ipAddress"],
+  "/",
+);
 
-  try {
-    await createConsole(ipAddressBytes.join("."));
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err : new Error("Something went wrong."),
-    };
-  }
+export const deleteConsoleAction = genericAction(
+  deleteConsole,
+  ["ipAddress"],
+  "/",
+);
 
-  revalidatePath("/");
+export const deleteFileAction = genericAction(
+  deleteFile,
+  ["ipAddress", "filePath", "isDirectory"],
+  "/[ipAddress]/files",
+);
 
-  return { success: true };
-};
+export const launchXexAction = genericAction(launchXex, [
+  "ipAddress",
+  "filePath",
+]);
 
-export const deleteConsoleAction: FormAction = async (formData) => {
-  const { ipAddress, error } = checkFormData(formData, ["ipAddress"]);
-  if (error != null) {
-    return {
-      success: false,
-      error,
-    };
-  }
+export const createDirectoryAction = genericAction(
+  createDirectory,
+  ["ipAddress", "dirname", "parentPath"],
+  "/[ipAddress]/files",
+);
 
-  try {
-    await deleteConsole(ipAddress);
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err : new Error("Something went wrong."),
-    };
-  }
+export const shutdownAction = genericAction(shutdown, ["ipAddress"]);
 
-  revalidatePath("/");
+export const syncTimeAction = genericAction(syncTime, ["ipAddress"]);
 
-  return { success: true };
-};
+function genericAction(
+  func: (...args: string[]) => Promise<void>,
+  keys: string[],
+  pathToRevalidate?: string,
+): FormAction {
+  return async (formData: FormData) => {
+    const params = [];
+    for (const key of keys) {
+      const value = formData.get(key);
+      if (typeof value !== "string" || value === "") {
+        return {
+          success: false,
+          error: new Error(`${key} needs to be a non-empty string.`),
+        };
+      }
 
-export const deleteFileAction: FormAction = async (formData) => {
-  const { ipAddress, filePath, error } = checkFormData(formData, [
-    "ipAddress",
-    "filePath",
-  ]);
-  if (error != null) {
-    return {
-      success: false,
-      error,
-    };
-  }
-
-  const isDirectory = formData.get("isDirectory") === "true";
-
-  try {
-    await deleteFile(ipAddress, filePath, isDirectory);
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err : new Error("Something went wrong."),
-    };
-  }
-
-  revalidatePath(`/${ipAddress}/files`);
-
-  return { success: true };
-};
-
-export const launchXexAction: FormAction = async (formData: FormData) => {
-  const { ipAddress, filePath, error } = checkFormData(formData, [
-    "ipAddress",
-    "filePath",
-  ]);
-  if (error != null) {
-    return {
-      success: false,
-      error,
-    };
-  }
-
-  try {
-    await launchXex(ipAddress, filePath);
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err : new Error("Something went wrong."),
-    };
-  }
-
-  return { success: true };
-};
-
-export const createDirectoryAction: FormAction = async (formData) => {
-  const { ipAddress, parentPath, dirname, error } = checkFormData(formData, [
-    "ipAddress",
-    "parentPath",
-    "dirname",
-  ]);
-  if (error != null) {
-    return {
-      success: false,
-      error,
-    };
-  }
-
-  try {
-    await createDirectory(ipAddress, dirname, parentPath);
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err : new Error("Something went wrong."),
-    };
-  }
-
-  revalidatePath(`/${ipAddress}/files`);
-
-  return { success: true };
-};
-
-export const shutdownAction: FormAction = async (formData) => {
-  const { ipAddress, error } = checkFormData(formData, ["ipAddress"]);
-  if (error != null) {
-    return {
-      success: false,
-      error,
-    };
-  }
-
-  try {
-    await shutdown(ipAddress);
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err : new Error("Something went wrong."),
-    };
-  }
-
-  return { success: true };
-};
-
-export const syncTimeAction: FormAction = async (formData) => {
-  const { ipAddress, error } = checkFormData(formData, ["ipAddress"]);
-  if (error != null) {
-    return {
-      success: false,
-      error,
-    };
-  }
-
-  try {
-    await syncTime(ipAddress);
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err : new Error("Something went wrong."),
-    };
-  }
-
-  return { success: true };
-};
-
-function checkFormData<T extends string>(formData: FormData, keys: T[]) {
-  const result: Record<string, unknown> = {};
-
-  for (const key of keys) {
-    const value = formData.get(key);
-    if (typeof value !== "string" || value === "") {
-      result.error = new Error(`${key} needs to be a non-empty string.`);
-      break;
+      params.push(value);
     }
 
-    result[key] = value;
-  }
+    try {
+      await func(...params);
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err : new Error("Something went wrong."),
+      };
+    }
 
-  return result as Record<T, string> & { error?: Error };
+    if (pathToRevalidate != null) {
+      revalidatePath(pathToRevalidate);
+    }
+
+    return { success: true };
+  };
 }
