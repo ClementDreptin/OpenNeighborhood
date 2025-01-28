@@ -19,7 +19,7 @@ import {
   syncTimeAction,
 } from "@/lib/actions";
 import type { Console } from "@/lib/consoles";
-import { displayErrorToast } from "@/lib/utils";
+import { useActionToast } from "@/lib/hooks";
 
 interface ConsoleButtonProps {
   console: Console;
@@ -28,6 +28,8 @@ interface ConsoleButtonProps {
 export default function ConsoleButton({ console }: ConsoleButtonProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
+  const shutdown = useActionToast(shutdownAction);
+  const syncTime = useActionToast(syncTimeAction);
 
   const handleClick = () => {
     router.push(`/${console.ipAddress}`);
@@ -37,34 +39,14 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
     const formData = new FormData();
     formData.set("ipAddress", console.ipAddress);
 
-    shutdownAction(formData)
-      .then((result) => {
-        if (result.error != null) {
-          displayErrorToast(result.error.message);
-        }
-      })
-      .catch((error: unknown) => {
-        if (error instanceof Error) {
-          displayErrorToast(error.message);
-        }
-      });
+    shutdown(formData, "Console successfully shutdown.");
   };
 
   const handleSyncTime = () => {
     const formData = new FormData();
     formData.set("ipAddress", console.ipAddress);
 
-    syncTimeAction(formData)
-      .then((result) => {
-        if (result.error != null) {
-          displayErrorToast(result.error.message);
-        }
-      })
-      .catch((error: unknown) => {
-        if (error instanceof Error) {
-          displayErrorToast(error.message);
-        }
-      });
+    syncTime(formData, "Console time synchronized.");
   };
 
   const handleDelete = () => {

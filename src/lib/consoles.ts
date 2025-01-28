@@ -301,20 +301,20 @@ export async function uploadFile(
 export async function deleteFile(
   ipAddress: string,
   filePath: string,
-  isDirectory: boolean,
+  isDirectory: string,
 ) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
   }
 
-  if (isDirectory) {
+  if (isDirectory === "true") {
     const files = await getFiles(ipAddress, filePath);
 
     for (const file of files) {
       await deleteFile(
         ipAddress,
         path.win32.join(filePath, file.name),
-        file.isDirectory,
+        String(file.isDirectory),
       );
     }
   }
@@ -322,7 +322,7 @@ export async function deleteFile(
   await xbdm.sendCommand(
     ipAddress,
     xbdm.STATUS_CODES.Ok,
-    `delete name="${filePath}"${isDirectory ? " dir" : ""}`,
+    `delete name="${filePath}"${isDirectory === "true" ? " dir" : ""}`,
   );
 }
 

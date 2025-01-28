@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { clsx, type ClassValue } from "clsx";
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
@@ -39,8 +40,11 @@ export function isValidIpv4(ipAddress: string) {
   return /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/.test(ipAddress);
 }
 
-export function displayErrorToast(errorMessage: string) {
-  toast.error(errorMessage, {
+export function displayToast(
+  message: React.ReactNode,
+  type: "success" | "error",
+) {
+  toast[type](message, {
     richColors: true,
     action: {
       label: "Dismiss",

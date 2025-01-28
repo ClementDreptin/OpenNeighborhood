@@ -26,6 +26,13 @@ export default function AddConsoleButton() {
     setIpAddressBytes(newBytes);
   };
 
+  const handleCreate = () => {
+    const formData = new FormData();
+    formData.set("ipAddress", ipAddressBytes.join("."));
+
+    return createConsoleAction(formData);
+  };
+
   const openModal = () => {
     setModalOpen(true);
   };
@@ -42,7 +49,7 @@ export default function AddConsoleButton() {
       <ActionModal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        action={createConsoleAction}
+        action={handleCreate}
         title="Add Xbox 360"
         description="Enter the IP address of the Xbox 360 you want to add."
         actions={{
@@ -62,7 +69,6 @@ export default function AddConsoleButton() {
                   </label>
                   <Input
                     id={id}
-                    name={id}
                     type="number"
                     min={0}
                     max={255}
