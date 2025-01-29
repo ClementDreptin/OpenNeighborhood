@@ -9,6 +9,9 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { IconButton } from "@/components/ui/icon-button";
@@ -74,6 +77,14 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
           </IconButton>
         </ContextMenuTrigger>
         <ContextMenuContent>
+          <ContextMenuSub>
+            <ContextMenuSubTrigger inset>Reboot</ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              <ContextMenuItem inset>Title</ContextMenuItem>
+              <ContextMenuItem inset>Title to active title</ContextMenuItem>
+              <ContextMenuItem inset>Cold</ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
           <ContextMenuItem inset onClick={handleShutdown}>
             Shutdown
           </ContextMenuItem>
