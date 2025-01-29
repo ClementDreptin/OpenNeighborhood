@@ -7,6 +7,7 @@ import {
   deleteConsole,
   deleteFile,
   launchXex,
+  renameFile,
   shutdown,
   syncTime,
 } from "./consoles";
@@ -31,6 +32,12 @@ export const deleteConsoleAction = genericAction(
 export const deleteFileAction = genericAction(
   deleteFile,
   ["ipAddress", "filePath", "isDirectory"],
+  "/[ipAddress]/files",
+);
+
+export const renameFileAction = genericAction(
+  renameFile,
+  ["ipAddress", "oldName", "newName"],
   "/[ipAddress]/files",
 );
 

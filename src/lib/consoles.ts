@@ -326,6 +326,22 @@ export async function deleteFile(
   );
 }
 
+export async function renameFile(
+  ipAddress: string,
+  oldName: string,
+  newName: string,
+) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  await xbdm.sendCommand(
+    ipAddress,
+    xbdm.STATUS_CODES.Ok,
+    `rename name="${oldName}" newname="${newName}"`,
+  );
+}
+
 export async function createDirectory(
   ipAddress: string,
   dirName: string,
@@ -405,9 +421,11 @@ export async function syncTime(ipAddress: string) {
   const clockHi = Number(BigInt(fileTime) >> BigInt(32));
   const clockLo = Number(BigInt(fileTime) & BigInt(0xffffffff));
 
-  const command = `setsystime clockhi=0x${clockHi.toString(16)} clocklo=0x${clockLo.toString(16)}`;
-
-  await xbdm.sendCommand(ipAddress, xbdm.STATUS_CODES.Ok, command);
+  await xbdm.sendCommand(
+    ipAddress,
+    xbdm.STATUS_CODES.Ok,
+    `setsystime clockhi=0x${clockHi.toString(16)} clocklo=0x${clockLo.toString(16)}`,
+  );
 }
 
 async function getConsolesFromFile() {

@@ -24,8 +24,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { deleteFileAction, launchXexAction } from "@/lib/actions";
+import {
+  deleteFileAction,
+  launchXexAction,
+  renameFileAction,
+} from "@/lib/actions";
 import type { File } from "@/lib/consoles";
 import { useActionToast, useDirPath, useIpAddress } from "@/lib/hooks";
 import { bytesToSize, unixTimeToString } from "@/lib/utils";
@@ -44,6 +49,8 @@ export default function FileButton({ file }: FileButtonProps) {
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] =
     React.useState(false);
+  const [renameModalOpen, setRenameModalOpen] = React.useState(false);
+  const [newName, setNewName] = React.useState("");
   const launchXex = useActionToast(launchXexAction);
 
   const icon = file.isDirectory
@@ -95,12 +102,28 @@ export default function FileButton({ file }: FileButtonProps) {
     }
   };
 
+  const handleRename = () => {
+    const newPath =
+      (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + newName;
+
+    const formData = new FormData();
+    formData.set("ipAddress", ipAddress);
+    formData.set("oldName", fullPath);
+    formData.set("newName", newPath);
+
+    return renameFileAction(formData);
+  };
+
   const openPropertiesModal = () => {
     setPropertiesModalOpen(true);
   };
 
   const openConfirmDeleteModal = () => {
     setConfirmDeleteModalOpen(true);
+  };
+
+  const openRenameModal = () => {
+    setRenameModalOpen(true);
   };
 
   return (
@@ -125,6 +148,9 @@ export default function FileButton({ file }: FileButtonProps) {
           <ContextMenuItem inset onClick={handleDownload}>
             Download
           </ContextMenuItem>
+          <ContextMenuItem inset onClick={openRenameModal}>
+            Rename
+          </ContextMenuItem>
           <ContextMenuItem inset onClick={openConfirmDeleteModal}>
             Delete
           </ContextMenuItem>
@@ -146,6 +172,41 @@ export default function FileButton({ file }: FileButtonProps) {
           </>
         }
       />
+
+      <ActionModal
+        open={renameModalOpen}
+        onOpenChange={setRenameModalOpen}
+        action={handleRename}
+        title={`Rename ${file.isDirectory ? "directory" : "file"}`}
+        description={
+          <>
+            Enter the new name of <strong>{file.name}</strong>.
+          </>
+        }
+        actions={{
+          cancel: "Cancel",
+          submit: "Confirm",
+        }}
+      >
+        {({ isError, isPending }) => (
+          <>
+            <label htmlFor="rename-input" className="sr-only">
+              New {file.isDirectory ? "directory" : "file"} name
+            </label>
+            <Input
+              id="rename-input"
+              type="text"
+              required
+              error={isError}
+              disabled={isPending}
+              value={newName}
+              onChange={(event) => {
+                setNewName(event.target.value);
+              }}
+            />
+          </>
+        )}
+      </ActionModal>
 
       <Dialog open={propertiesModalOpen} onOpenChange={setPropertiesModalOpen}>
         <DialogContent>
