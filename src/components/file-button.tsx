@@ -50,7 +50,7 @@ export default function FileButton({ file }: FileButtonProps) {
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] =
     React.useState(false);
   const [renameModalOpen, setRenameModalOpen] = React.useState(false);
-  const [newName, setNewName] = React.useState("");
+  const [newName, setNewName] = React.useState(file.name);
   const launchXex = useActionToast(launchXexAction);
 
   const icon = file.isDirectory
