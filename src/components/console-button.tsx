@@ -5,6 +5,7 @@ import type { StaticImageData } from "next/image";
 import { useRouter } from "next/navigation";
 import consoleIcon from "@/../public/console.svg";
 import ActionModal from "@/components/action-modal";
+import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -14,6 +15,15 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  Dialog,
+  DialogDescription,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { IconButton } from "@/components/ui/icon-button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -33,7 +43,9 @@ interface ConsoleButtonProps {
 
 export default function ConsoleButton({ console }: ConsoleButtonProps) {
   const router = useRouter();
-  const [modalOpen, setModalOpen] = React.useState(false);
+  const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] =
+    React.useState(false);
+  const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
   const goToDashboard = useActionToast(goToDashboardAction);
   const restartActiveTitle = useActionToast(restartActiveTitleAction);
   const reboot = useActionToast(rebootAction);
@@ -86,8 +98,12 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
     return deleteConsoleAction(formData);
   };
 
-  const openModal = () => {
-    setModalOpen(true);
+  const openConfirmDeleteModal = () => {
+    setConfirmDeleteModalOpen(true);
+  };
+
+  const openPropertiesModal = () => {
+    setPropertiesModalOpen(true);
   };
 
   return (
@@ -127,18 +143,60 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
 
           <Separator />
 
-          <ContextMenuItem inset onClick={openModal}>
+          <ContextMenuItem inset onClick={openConfirmDeleteModal}>
             Delete
+          </ContextMenuItem>
+
+          <Separator />
+
+          <ContextMenuItem inset onClick={openPropertiesModal}>
+            Properties
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
       <ActionModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
+        open={confirmDeleteModalOpen}
+        onOpenChange={setConfirmDeleteModalOpen}
         action={handleDelete}
         description={`Are you sure you want to delete ${console.ipAddress}?`}
       />
+
+      <Dialog open={propertiesModalOpen} onOpenChange={setPropertiesModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{console.name}</DialogTitle>
+            <DialogDescription>Properties of {console.name}</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+            <div>Name:</div>
+            <div className="col-span-3">{console.name}</div>
+            <div>Type:</div>
+            <div className="col-span-3">{console.type}</div>
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+            <div>IP address:</div>
+            <div className="col-span-3">{console.ipAddress}</div>
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+            <div>Active title:</div>
+            <div className="col-span-3 break-words">{console.activeTitle}</div>
+          </div>
+
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button>Close</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

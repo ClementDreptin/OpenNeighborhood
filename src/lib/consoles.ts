@@ -11,13 +11,16 @@ import "server-only";
 export interface Console {
   name: string;
   ipAddress: string;
+  type: string;
+  activeTitle: string;
 }
 
 const CONFIG_FILE_PATH = "consoles.json";
 
 export async function getConsoles() {
+  let consolesFromFile: Console[];
   try {
-    return await getConsolesFromFile();
+    consolesFromFile = await getConsolesFromFile();
   } catch (err) {
     if (isErrnoException(err) && err.code === "ENOENT") {
       return [];
@@ -25,6 +28,36 @@ export async function getConsoles() {
 
     throw err;
   }
+
+  // The consoles from the file are incomplete so we fetch their
+  // info before returning them
+  const consoles: Console[] = [];
+  for (const consoleFromFile of consolesFromFile) {
+    consoles.push({
+      name: await getConsoleName(consoleFromFile.ipAddress),
+      ipAddress: consoleFromFile.ipAddress,
+      type: await getConsoleType(consoleFromFile.ipAddress),
+      activeTitle: await getActiveTitle(consoleFromFile.ipAddress),
+    });
+  }
+
+  return consoles;
+}
+
+export async function getConsoleName(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  return await xbdm.sendCommand(ipAddress, xbdm.STATUS_CODES.Ok, "dbgname");
+}
+
+export async function getConsoleType(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  return await xbdm.sendCommand(ipAddress, xbdm.STATUS_CODES.Ok, "consoletype");
 }
 
 export async function createConsole(ipAddress: string) {
@@ -47,13 +80,13 @@ export async function createConsole(ipAddress: string) {
     throw new Error(`Console with IP address ${ipAddress} already exists.`);
   }
 
-  const consoleName = await xbdm.sendCommand(
+  // No need to get the console type and active title right away, these can be fetched later
+  consoles.push({
+    name: await getConsoleName(ipAddress),
     ipAddress,
-    xbdm.STATUS_CODES.Ok,
-    "dbgname",
-  );
-
-  consoles.push({ name: consoleName, ipAddress });
+    type: "",
+    activeTitle: "",
+  });
 
   await writeConsolesToFile(consoles);
 }
