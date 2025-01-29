@@ -395,6 +395,14 @@ export async function goToDashboard(ipAddress: string) {
   await xbdm.sendCommand(ipAddress, xbdm.STATUS_CODES.Ok, "magicboot");
 }
 
+export async function restartActiveTitle(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  await launchXex(ipAddress, await getActiveTitle(ipAddress));
+}
+
 export async function reboot(ipAddress: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
@@ -459,6 +467,20 @@ export async function syncTime(ipAddress: string) {
     xbdm.STATUS_CODES.Ok,
     `setsystime clockhi=0x${clockHi.toString(16)} clocklo=0x${clockLo.toString(16)}`,
   );
+}
+
+export async function getActiveTitle(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  const response = await xbdm.sendCommand(
+    ipAddress,
+    xbdm.STATUS_CODES.MultilineResponseFollows,
+    "xbeinfo running",
+  );
+
+  return xbdm.getStringProperty(response, "name");
 }
 
 async function getConsolesFromFile() {

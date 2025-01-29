@@ -10,6 +10,7 @@ import {
   launchXex,
   reboot,
   renameFile,
+  restartActiveTitle,
   shutdown,
   syncTime,
 } from "./consoles";
@@ -55,6 +56,10 @@ export const createDirectoryAction = genericAction(
 );
 
 export const goToDashboardAction = genericAction(goToDashboard, ["ipAddress"]);
+
+export const restartActiveTitleAction = genericAction(restartActiveTitle, [
+  "ipAddress",
+]);
 
 export const rebootAction = genericAction(reboot, ["ipAddress"]);
 

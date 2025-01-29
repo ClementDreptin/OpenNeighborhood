@@ -20,6 +20,7 @@ import {
   deleteConsoleAction,
   goToDashboardAction,
   rebootAction,
+  restartActiveTitleAction,
   shutdownAction,
   syncTimeAction,
 } from "@/lib/actions";
@@ -34,6 +35,7 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
   const goToDashboard = useActionToast(goToDashboardAction);
+  const restartActiveTitle = useActionToast(restartActiveTitleAction);
   const reboot = useActionToast(rebootAction);
   const shutdown = useActionToast(shutdownAction);
   const syncTime = useActionToast(syncTimeAction);
@@ -47,6 +49,13 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
     formData.set("ipAddress", console.ipAddress);
 
     goToDashboard(formData);
+  };
+
+  const handleRestartActiveTitle = () => {
+    const formData = new FormData();
+    formData.set("ipAddress", console.ipAddress);
+
+    restartActiveTitle(formData);
   };
 
   const handleReboot = () => {
@@ -101,7 +110,9 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
               <ContextMenuItem inset onClick={handleGoToDashboard}>
                 Title
               </ContextMenuItem>
-              <ContextMenuItem inset>Title to active title</ContextMenuItem>
+              <ContextMenuItem inset onClick={handleRestartActiveTitle}>
+                Title to active title
+              </ContextMenuItem>
               <ContextMenuItem inset onClick={handleReboot}>
                 Cold
               </ContextMenuItem>
