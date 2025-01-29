@@ -7,6 +7,7 @@ import {
   deleteConsole,
   deleteFile,
   launchXex,
+  reboot,
   renameFile,
   shutdown,
   syncTime,
@@ -51,6 +52,8 @@ export const createDirectoryAction = genericAction(
   ["ipAddress", "dirName", "parentPath"],
   "/[ipAddress]/files",
 );
+
+export const rebootAction = genericAction(reboot, ["ipAddress"]);
 
 export const shutdownAction = genericAction(shutdown, ["ipAddress"]);
 

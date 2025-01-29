@@ -18,6 +18,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Separator } from "@/components/ui/separator";
 import {
   deleteConsoleAction,
+  rebootAction,
   shutdownAction,
   syncTimeAction,
 } from "@/lib/actions";
@@ -31,6 +32,7 @@ interface ConsoleButtonProps {
 export default function ConsoleButton({ console }: ConsoleButtonProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
+  const reboot = useActionToast(rebootAction);
   const shutdown = useActionToast(shutdownAction);
   const syncTime = useActionToast(syncTimeAction);
 
@@ -38,18 +40,25 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
     router.push(`/${console.ipAddress}`);
   };
 
+  const handleReboot = () => {
+    const formData = new FormData();
+    formData.set("ipAddress", console.ipAddress);
+
+    reboot(formData);
+  };
+
   const handleShutdown = () => {
     const formData = new FormData();
     formData.set("ipAddress", console.ipAddress);
 
-    shutdown(formData, "Console successfully shutdown.");
+    shutdown(formData);
   };
 
   const handleSyncTime = () => {
     const formData = new FormData();
     formData.set("ipAddress", console.ipAddress);
 
-    syncTime(formData, "Console time synchronized.");
+    syncTime(formData);
   };
 
   const handleDelete = () => {
@@ -82,7 +91,9 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
             <ContextMenuSubContent>
               <ContextMenuItem inset>Title</ContextMenuItem>
               <ContextMenuItem inset>Title to active title</ContextMenuItem>
-              <ContextMenuItem inset>Cold</ContextMenuItem>
+              <ContextMenuItem inset onClick={handleReboot}>
+                Cold
+              </ContextMenuItem>
             </ContextMenuSubContent>
           </ContextMenuSub>
           <ContextMenuItem inset onClick={handleShutdown}>

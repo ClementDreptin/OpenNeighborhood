@@ -387,6 +387,31 @@ export async function launchXex(ipAddress: string, filePath: string) {
   );
 }
 
+export async function reboot(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  // We expect the command to fail here, because the console will close the connection
+  // immediately after receiving the command
+  try {
+    await xbdm.sendCommand(ipAddress, xbdm.STATUS_CODES.Ok, "magicboot COLD");
+  } catch (err) {
+    // We expect a specific error, if it's anything else, rethrow
+    if (
+      !(err instanceof Error) ||
+      err.message !== "Connection was closed by the console."
+    ) {
+      throw err;
+    }
+
+    return;
+  }
+
+  // We shouldn't ever get here, but if we do, notify the user
+  throw new Error("Couldn't reboot the console.");
+}
+
 export async function shutdown(ipAddress: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
