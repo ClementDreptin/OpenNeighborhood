@@ -387,6 +387,47 @@ export async function launchXex(ipAddress: string, filePath: string) {
   );
 }
 
+export async function goToDashboard(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  await xbdm.sendCommand(ipAddress, xbdm.STATUS_CODES.Ok, "magicboot");
+}
+
+export async function restartActiveTitle(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  await launchXex(ipAddress, await getActiveTitle(ipAddress));
+}
+
+export async function reboot(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  // We expect the command to fail here, because the console will close the connection
+  // immediately after receiving the command
+  try {
+    await xbdm.sendCommand(ipAddress, xbdm.STATUS_CODES.Ok, "magicboot COLD");
+  } catch (err) {
+    // We expect a specific error, if it's anything else, rethrow
+    if (
+      !(err instanceof Error) ||
+      err.message !== "Connection was closed by the console."
+    ) {
+      throw err;
+    }
+
+    return;
+  }
+
+  // We shouldn't ever get here, but if we do, notify the user
+  throw new Error("Couldn't reboot the console.");
+}
+
 export async function shutdown(ipAddress: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
@@ -426,6 +467,20 @@ export async function syncTime(ipAddress: string) {
     xbdm.STATUS_CODES.Ok,
     `setsystime clockhi=0x${clockHi.toString(16)} clocklo=0x${clockLo.toString(16)}`,
   );
+}
+
+export async function getActiveTitle(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  const response = await xbdm.sendCommand(
+    ipAddress,
+    xbdm.STATUS_CODES.MultilineResponseFollows,
+    "xbeinfo running",
+  );
+
+  return xbdm.getStringProperty(response, "name");
 }
 
 async function getConsolesFromFile() {

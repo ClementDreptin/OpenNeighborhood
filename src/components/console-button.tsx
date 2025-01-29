@@ -9,12 +9,18 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { IconButton } from "@/components/ui/icon-button";
 import { Separator } from "@/components/ui/separator";
 import {
   deleteConsoleAction,
+  goToDashboardAction,
+  rebootAction,
+  restartActiveTitleAction,
   shutdownAction,
   syncTimeAction,
 } from "@/lib/actions";
@@ -28,6 +34,9 @@ interface ConsoleButtonProps {
 export default function ConsoleButton({ console }: ConsoleButtonProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
+  const goToDashboard = useActionToast(goToDashboardAction);
+  const restartActiveTitle = useActionToast(restartActiveTitleAction);
+  const reboot = useActionToast(rebootAction);
   const shutdown = useActionToast(shutdownAction);
   const syncTime = useActionToast(syncTimeAction);
 
@@ -35,18 +44,39 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
     router.push(`/${console.ipAddress}`);
   };
 
+  const handleGoToDashboard = () => {
+    const formData = new FormData();
+    formData.set("ipAddress", console.ipAddress);
+
+    goToDashboard(formData);
+  };
+
+  const handleRestartActiveTitle = () => {
+    const formData = new FormData();
+    formData.set("ipAddress", console.ipAddress);
+
+    restartActiveTitle(formData);
+  };
+
+  const handleReboot = () => {
+    const formData = new FormData();
+    formData.set("ipAddress", console.ipAddress);
+
+    reboot(formData);
+  };
+
   const handleShutdown = () => {
     const formData = new FormData();
     formData.set("ipAddress", console.ipAddress);
 
-    shutdown(formData, "Console successfully shutdown.");
+    shutdown(formData);
   };
 
   const handleSyncTime = () => {
     const formData = new FormData();
     formData.set("ipAddress", console.ipAddress);
 
-    syncTime(formData, "Console time synchronized.");
+    syncTime(formData);
   };
 
   const handleDelete = () => {
@@ -74,6 +104,20 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
           </IconButton>
         </ContextMenuTrigger>
         <ContextMenuContent>
+          <ContextMenuSub>
+            <ContextMenuSubTrigger inset>Reboot</ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              <ContextMenuItem inset onClick={handleGoToDashboard}>
+                Title
+              </ContextMenuItem>
+              <ContextMenuItem inset onClick={handleRestartActiveTitle}>
+                Title to active title
+              </ContextMenuItem>
+              <ContextMenuItem inset onClick={handleReboot}>
+                Cold
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
           <ContextMenuItem inset onClick={handleShutdown}>
             Shutdown
           </ContextMenuItem>
