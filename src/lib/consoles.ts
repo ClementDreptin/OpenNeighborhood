@@ -387,6 +387,14 @@ export async function launchXex(ipAddress: string, filePath: string) {
   );
 }
 
+export async function goToDashboard(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  await xbdm.sendCommand(ipAddress, xbdm.STATUS_CODES.Ok, "magicboot");
+}
+
 export async function reboot(ipAddress: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");

@@ -18,6 +18,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Separator } from "@/components/ui/separator";
 import {
   deleteConsoleAction,
+  goToDashboardAction,
   rebootAction,
   shutdownAction,
   syncTimeAction,
@@ -32,12 +33,20 @@ interface ConsoleButtonProps {
 export default function ConsoleButton({ console }: ConsoleButtonProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
+  const goToDashboard = useActionToast(goToDashboardAction);
   const reboot = useActionToast(rebootAction);
   const shutdown = useActionToast(shutdownAction);
   const syncTime = useActionToast(syncTimeAction);
 
   const handleClick = () => {
     router.push(`/${console.ipAddress}`);
+  };
+
+  const handleGoToDashboard = () => {
+    const formData = new FormData();
+    formData.set("ipAddress", console.ipAddress);
+
+    goToDashboard(formData);
   };
 
   const handleReboot = () => {
@@ -89,7 +98,9 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
           <ContextMenuSub>
             <ContextMenuSubTrigger inset>Reboot</ContextMenuSubTrigger>
             <ContextMenuSubContent>
-              <ContextMenuItem inset>Title</ContextMenuItem>
+              <ContextMenuItem inset onClick={handleGoToDashboard}>
+                Title
+              </ContextMenuItem>
               <ContextMenuItem inset>Title to active title</ContextMenuItem>
               <ContextMenuItem inset onClick={handleReboot}>
                 Cold
