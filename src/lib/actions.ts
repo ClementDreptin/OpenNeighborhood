@@ -85,7 +85,9 @@ function genericAction(
     }
 
     if (pathToRevalidate != null) {
-      revalidatePath(pathToRevalidate);
+      const isDynamicPath =
+        pathToRevalidate.includes("[") && pathToRevalidate.includes("]");
+      revalidatePath(pathToRevalidate, isDynamicPath ? "page" : undefined);
     }
 
     return { success: true };
