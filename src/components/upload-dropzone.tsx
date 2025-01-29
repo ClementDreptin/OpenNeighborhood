@@ -119,7 +119,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
       setDirectoryCreationProgress(i);
 
       formData.set("parentPath", dirPath);
-      formData.set("dirname", directory);
+      formData.set("dirName", directory);
 
       const result = await createDirectoryAction(formData);
       if (result.error != null) {

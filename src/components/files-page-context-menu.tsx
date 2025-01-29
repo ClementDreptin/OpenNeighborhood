@@ -12,8 +12,6 @@ import { Input } from "@/components/ui/input";
 import { createDirectoryAction } from "@/lib/actions";
 import { useDirPath, useIpAddress } from "@/lib/hooks";
 
-const DIRNAME_INPUT_ID = "dirname";
-
 interface FilesPageContextMenuProps {
   children: React.ReactNode;
 }
@@ -60,12 +58,12 @@ export default function FilesPageContextMenu({
       >
         {({ isError, isPending }) => (
           <>
-            <label htmlFor={DIRNAME_INPUT_ID} className="sr-only">
+            <label htmlFor="create-dir-input" className="sr-only">
               New directory name
             </label>
             <Input
-              id={DIRNAME_INPUT_ID}
-              name={DIRNAME_INPUT_ID}
+              id="create-dir-input"
+              name="dirName"
               type="text"
               required
               error={isError}
