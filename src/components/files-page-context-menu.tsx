@@ -9,8 +9,9 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
-import { createDirectoryAction } from "@/lib/actions";
-import { useDirPath, useIpAddress } from "@/lib/hooks";
+import { createDirectoryAction, renameFileAction } from "@/lib/actions";
+import { useActionToast, useDirPath, useIpAddress } from "@/lib/hooks";
+import { displayToast, pathBasename } from "@/lib/utils";
 
 interface FilesPageContextMenuProps {
   children: React.ReactNode;
@@ -21,8 +22,37 @@ export default function FilesPageContextMenu({
 }: FilesPageContextMenuProps) {
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
+  const renameFile = useActionToast(renameFileAction);
   const [createDirectoryModalOpen, setCreateDirectoryModalOpen] =
     React.useState(false);
+  const clipboardPath =
+    typeof window !== "undefined"
+      ? localStorage.getItem("clipboardPath")
+      : null;
+
+  const handlePaste = () => {
+    if (clipboardPath == null || clipboardPath === "") {
+      displayToast("There is nothing to paste.", "error");
+      return;
+    }
+
+    const fileName = pathBasename(clipboardPath);
+    if (fileName == null) {
+      displayToast("Wrong path format.", "error");
+      return;
+    }
+
+    const newPath =
+      (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + fileName;
+
+    const formData = new FormData();
+    formData.set("ipAddress", ipAddress);
+    formData.set("oldName", clipboardPath);
+    formData.set("newName", newPath);
+
+    renameFile(formData);
+    localStorage.removeItem("clipboardPath");
+  };
 
   const handleCreateDirectory = (formData: FormData) => {
     formData.set("ipAddress", ipAddress);
@@ -43,6 +73,13 @@ export default function FilesPageContextMenu({
         </ContextMenuTrigger>
 
         <ContextMenuContent>
+          <ContextMenuItem
+            inset
+            disabled={clipboardPath == null}
+            onClick={handlePaste}
+          >
+            Paste
+          </ContextMenuItem>
           <ContextMenuItem inset onClick={openCreateDirectoryModal}>
             Create directory
           </ContextMenuItem>

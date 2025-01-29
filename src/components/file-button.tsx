@@ -87,6 +87,10 @@ export default function FileButton({ file }: FileButtonProps) {
     link.click();
   };
 
+  const handleCut = () => {
+    localStorage.setItem("clipboardPath", fullPath);
+  };
+
   const handleDelete = () => {
     const formData = new FormData();
     formData.set("ipAddress", ipAddress);
@@ -148,13 +152,24 @@ export default function FileButton({ file }: FileButtonProps) {
           <ContextMenuItem inset onClick={handleDownload}>
             Download
           </ContextMenuItem>
+
+          <Separator />
+
+          <ContextMenuItem inset onClick={handleCut}>
+            Cut
+          </ContextMenuItem>
+
+          <Separator />
+
           <ContextMenuItem inset onClick={openRenameModal}>
             Rename
           </ContextMenuItem>
           <ContextMenuItem inset onClick={openConfirmDeleteModal}>
             Delete
           </ContextMenuItem>
+
           <Separator />
+
           <ContextMenuItem inset onClick={openPropertiesModal}>
             Properties
           </ContextMenuItem>
