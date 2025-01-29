@@ -48,7 +48,7 @@ export const launchXexAction = genericAction(launchXex, [
 
 export const createDirectoryAction = genericAction(
   createDirectory,
-  ["ipAddress", "dirname", "parentPath"],
+  ["ipAddress", "dirName", "parentPath"],
   "/[ipAddress]/files",
 );
 
