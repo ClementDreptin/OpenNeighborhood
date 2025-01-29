@@ -19,6 +19,7 @@ import {
   type FormAction,
 } from "@/lib/actions";
 import { useDirPath, useIpAddress } from "@/lib/hooks";
+import { getPathParts, pathDirname } from "@/lib/utils";
 
 interface UploadDropzoneProps {
   children: React.ReactNode;
@@ -138,7 +139,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
       const file = filesToUpload[i];
       setUploadProgress(i);
 
-      const fileDir = pathDirname(file.path ?? "");
+      const fileDir = pathDirname(file.path ?? "", "/");
 
       formData.set("dirPath", `${dirPath}\\${fileDir}`);
       formData.set("file", file);
@@ -313,22 +314,6 @@ function ErrorModalContent({ message }: ErrorModalContentProps) {
   );
 }
 
-function getPathParts(path: string) {
-  // When a directory is dropped, the files at its root will have a path that looks
-  // like "./<filename>", so if we split on "/" we get [".", "<filename>"], which is
-  // why we need to filter out the "."
-  return path.split("/").filter((part) => part !== "" && part !== ".");
-}
-
-function pathDirname(path: string) {
-  const parts = getPathParts(path);
-
-  // The last part is the file name so we remove it
-  parts.pop();
-
-  return parts.join("/");
-}
-
 function getDirectories(files: FileWithPath[]) {
   // For a list of files, extract all the directories
   //
@@ -342,11 +327,11 @@ function getDirectories(files: FileWithPath[]) {
 
   // Recursively get all the parent directories of each files
   files.forEach((file) => {
-    let currentPath = pathDirname(file.path ?? "");
+    let currentPath = pathDirname(file.path ?? "", "/");
 
     while (currentPath !== "") {
       directories.add(currentPath);
-      currentPath = pathDirname(currentPath);
+      currentPath = pathDirname(currentPath, "/");
     }
   });
 
