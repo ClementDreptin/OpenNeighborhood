@@ -1,17 +1,15 @@
 import { uploadFile } from "@/lib/consoles";
 
-export async function POST(request: Request) {
-  const formData = await request.formData();
+interface RouteInfo {
+  params: Promise<{ ipAddress: string }>;
+}
 
-  const ipAddress = formData.get("ipAddress");
-  if (typeof ipAddress !== "string") {
-    return new Response("ipAddress needs to be of type string.", {
-      status: 400,
-    });
-  }
+export async function POST(request: Request, { params }: RouteInfo) {
+  const formData = await request.formData();
+  const { ipAddress } = await params;
 
   const dirPath = formData.get("dirPath");
-  if (typeof dirPath !== "string") {
+  if (typeof dirPath !== "string" || dirPath === "") {
     return new Response("dirPath needs to be of type string.", { status: 400 });
   }
 

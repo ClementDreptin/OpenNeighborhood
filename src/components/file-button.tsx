@@ -78,7 +78,6 @@ export default function FileButton({ file }: FileButtonProps) {
       `${window.location.pathname}/download`,
       window.location.origin,
     );
-    url.searchParams.set("ipAddress", ipAddress);
     url.searchParams.set("path", fullPath);
     url.searchParams.set("isDirectory", file.isDirectory.toString());
 

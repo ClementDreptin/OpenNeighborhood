@@ -132,15 +132,13 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   };
 
   const uploadFiles = async (filesToUpload: FileWithPath[]) => {
-    const formData = new FormData();
-    formData.set("ipAddress", ipAddress);
-
     for (let i = 0; i < filesToUpload.length; i++) {
       const file = filesToUpload[i];
       setUploadProgress(i);
 
       const fileDir = pathDirname(file.path ?? "", "/");
 
+      const formData = new FormData();
       formData.set("dirPath", `${dirPath}\\${fileDir}`);
       formData.set("file", file);
 
