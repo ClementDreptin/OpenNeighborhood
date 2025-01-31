@@ -123,8 +123,8 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
       formData.set("dirName", directory);
 
       const result = await createDirectoryAction(formData);
-      if (result.error != null) {
-        throw result.error;
+      if (result.errorMessage != null) {
+        throw new Error(result.errorMessage);
       }
     }
 

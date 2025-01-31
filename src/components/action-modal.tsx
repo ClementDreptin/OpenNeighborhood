@@ -64,7 +64,7 @@ export default function ActionModal(props: ActionModalProps) {
 
           {isError ? (
             <p role="alert" className="text-destructive">
-              {formState.error?.message}
+              {formState.errorMessage}
             </p>
           ) : null}
 

@@ -18,7 +18,7 @@ import "server-only";
 
 export type FormAction = (
   formData: FormData,
-) => Promise<{ success: boolean; error?: Error }>;
+) => Promise<{ success: boolean; errorMessage?: string }>;
 
 export const createConsoleAction = genericAction(
   createConsole,
@@ -91,7 +91,8 @@ function genericAction(
     } catch (err) {
       return {
         success: false,
-        error: err instanceof Error ? err : new Error("Something went wrong."),
+        errorMessage:
+          err instanceof Error ? err.message : "Something went wrong.",
       };
     }
 
