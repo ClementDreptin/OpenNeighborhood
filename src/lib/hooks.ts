@@ -19,8 +19,8 @@ export function useActionToast(action: FormAction) {
   return (formData: FormData, successMessage?: React.ReactNode) => {
     action(formData)
       .then((result) => {
-        if (result.error != null) {
-          displayToast(result.error.message, "error");
+        if (result.errorMessage != null) {
+          displayToast(result.errorMessage, "error");
           return;
         }
 
