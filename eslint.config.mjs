@@ -1,12 +1,13 @@
 import { FlatCompat } from "@eslint/eslintrc";
 import eslint from "@eslint/js";
 import reactCompiler from "eslint-plugin-react-compiler";
+import { defineConfig } from "eslint/config";
 import neostandard from "neostandard";
 import tseslint from "typescript-eslint";
 
 const compat = new FlatCompat();
 
-export default tseslint.config(
+export default defineConfig(
   // Base
   eslint.configs.recommended,
 
@@ -16,30 +17,15 @@ export default tseslint.config(
   // Next
   ...compat.extends("next/core-web-vitals"),
   ...compat.extends("next/typescript"),
-  {
-    ignores: [".next/*"],
-  },
+  { ignores: [".next/*"] },
 
   // TypeScript
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
-  {
-    languageOptions: {
-      parserOptions: {
-        project: "./tsconfig.json",
-      },
-    },
-  },
+  { languageOptions: { parserOptions: { project: "./tsconfig.json" } } },
 
   // React Compiler
-  {
-    plugins: {
-      "react-compiler": reactCompiler,
-    },
-    rules: {
-      "react-compiler/react-compiler": "error",
-    },
-  },
+  reactCompiler.configs.recommended,
 
   // Custom rules
   {
@@ -58,9 +44,7 @@ export default tseslint.config(
       ],
       "@typescript-eslint/consistent-type-imports": [
         "error",
-        {
-          fixStyle: "inline-type-imports",
-        },
+        { fixStyle: "inline-type-imports" },
       ],
       "no-void": "off",
     },

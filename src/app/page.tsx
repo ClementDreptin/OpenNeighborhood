@@ -12,7 +12,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="grid grid-cols-autofill gap-4">
+    <div className="grid-cols-autofill grid gap-4">
       <AddConsoleButton />
 
       {consoles.map((console) => (

@@ -185,7 +185,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
       <input {...getInputProps()} />
 
       {isDragActive && (
-        <div className="absolute inset-0 rounded-md bg-gray-600 bg-opacity-50" />
+        <div className="bg-opacity-50 absolute inset-0 rounded-md bg-gray-600" />
       )}
 
       {children}
