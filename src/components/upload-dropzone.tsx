@@ -192,7 +192,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent
-          displayCloseButton={isError}
+          showCloseButton={isError}
           onInteractOutside={!isError ? preventClose : undefined}
           onEscapeKeyDown={!isError ? preventClose : undefined}
           onOpenAutoFocus={preventClose}
