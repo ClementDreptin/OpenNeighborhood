@@ -63,7 +63,7 @@ export default function AddConsoleButton() {
               const id = `ip-address-byte-${index.toString()}`;
 
               return (
-                <div key={index} className="flex-grow">
+                <div key={index} className="grow">
                   <label htmlFor={id} className="sr-only">
                     Byte {index + 1}
                   </label>

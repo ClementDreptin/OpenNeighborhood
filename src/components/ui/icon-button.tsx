@@ -22,7 +22,7 @@ function IconButton({
       {...props}
     >
       <Image alt="" priority={priority} src={iconSrc} />
-      <div className="flex-grow self-start">
+      <div className="grow self-start">
         <div
           style={{ overflowWrap: "anywhere" }}
           className="line-clamp-3 text-start"

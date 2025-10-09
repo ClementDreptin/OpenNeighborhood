@@ -26,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </React.Suspense>
             </Card>
 
-            <Card className="flex flex-grow flex-col p-4">{children}</Card>
+            <Card className="flex grow flex-col p-4">{children}</Card>
           </div>
 
           <Toaster />
