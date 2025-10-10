@@ -21,7 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CircleProgress } from "@/components/ui/progress";
+import { CircularProgress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import type { Drive } from "@/lib/consoles";
 import { bytesToSize } from "@/lib/utils";
@@ -103,7 +103,7 @@ export default function DriveButton({ drive }: DriveButtonProps) {
         </div>
 
         <div className="flex justify-center">
-          <CircleProgress value={usedSpaceRatio} />
+          <CircularProgress value={usedSpaceRatio} />
         </div>
 
         <DialogFooter>

@@ -34,25 +34,59 @@ const PERCENT_FORMATTER = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 1,
 });
 
-function CircleProgress({
-  className,
-  value,
-  ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root>) {
+interface CircularProgressProps {
+  value: number;
+  className?: string;
+}
+
+function CircularProgress({ value, className }: CircularProgressProps) {
+  const size = 100;
+  const strokeWidth = 10;
+  const radius = size / 2 - 10;
+  const circumference = Math.ceil(Math.PI * radius * 2);
+  const percentage = Math.ceil(circumference * (1 - value));
+  const viewBox = `-${size * 0.125} -${size * 0.125} ${size * 1.25} ${size * 1.25}`;
+
   return (
-    <ProgressPrimitive.Root
-      className={cn(
-        "relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full",
-        className,
-      )}
-      {...props}
-      style={{
-        background: `radial-gradient(closest-side, hsl(var(--secondary)) 79%, transparent 80% 100%), conic-gradient(hsl(var(--primary)) ${((value ?? 0) * 100).toString()}%, hsl(var(--secondary)) 0)`,
-      }}
-    >
-      <div>{PERCENT_FORMATTER.format(value ?? 0)}</div>
-    </ProgressPrimitive.Root>
+    <div className="relative">
+      <svg
+        width={size}
+        height={size}
+        viewBox={viewBox}
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ transform: "rotate(-90deg)" }}
+        className="relative"
+      >
+        {/* Base Circle */}
+        <circle
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          fill="transparent"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset="0"
+          className={cn("stroke-primary/25", className)}
+        />
+        {/* Progress */}
+        <circle
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDashoffset={percentage}
+          fill="transparent"
+          strokeDasharray={circumference}
+          className="stroke-primary"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center text-sm">
+        {PERCENT_FORMATTER.format(value)}
+      </div>
+    </div>
   );
 }
 
-export { Progress, CircleProgress };
+export { Progress, CircularProgress };
