@@ -17,12 +17,20 @@ export default defineConfig(
   // Next
   ...compat.extends("next/core-web-vitals"),
   ...compat.extends("next/typescript"),
-  { ignores: [".next/*", "next-env.d.ts"] },
+  {
+    ignores: [".next/*", "next-env.d.ts"],
+  },
 
   // TypeScript
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
-  { languageOptions: { parserOptions: { project: "./tsconfig.json" } } },
+  {
+    languageOptions: {
+      parserOptions: {
+        project: "./tsconfig.json",
+      },
+    },
+  },
 
   // React Compiler
   reactCompiler.configs.recommended,
