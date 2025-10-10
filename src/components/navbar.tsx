@@ -65,7 +65,7 @@ export default function Navbar() {
 
   return (
     <Breadcrumb>
-      <BreadcrumbList className="text-md navbar-scrollbar flex-nowrap overflow-x-auto">
+      <BreadcrumbList className="navbar-scrollbar flex-nowrap overflow-x-auto">
         {getParts().map((part, index, parts) =>
           // Add a link followed by a separator for each part except the last one
           index !== parts.length - 1 ? (

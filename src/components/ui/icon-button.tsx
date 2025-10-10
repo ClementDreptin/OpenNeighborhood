@@ -8,16 +8,24 @@ interface IconButtonProps extends ButtonProps {
   priority?: React.ComponentProps<typeof Image>["priority"];
 }
 
-const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ className, iconSrc, priority = true, children, ...props }, ref) => (
+function IconButton({
+  className,
+  iconSrc,
+  priority,
+  children,
+  ...props
+}: IconButtonProps) {
+  return (
     <Button
       variant="outline"
-      className={cn("h-full w-full justify-around gap-4 text-wrap", className)}
-      ref={ref}
+      className={cn(
+        "h-full w-full justify-around gap-4 whitespace-normal",
+        className,
+      )}
       {...props}
     >
       <Image alt="" priority={priority} src={iconSrc} />
-      <div className="flex-grow self-start">
+      <div className="grow self-start">
         <div
           style={{ overflowWrap: "anywhere" }}
           className="line-clamp-3 text-start"
@@ -26,8 +34,7 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
         </div>
       </div>
     </Button>
-  ),
-);
-IconButton.displayName = "IconButton";
+  );
+}
 
 export { IconButton };

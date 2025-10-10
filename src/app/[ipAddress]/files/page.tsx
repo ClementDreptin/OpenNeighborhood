@@ -4,9 +4,10 @@ import FilesPageContextMenu from "@/components/files-page-context-menu";
 import UploadDropzone from "@/components/upload-dropzone";
 import { FilesProvider } from "@/contexts/FilesContext";
 import { getFiles } from "@/lib/consoles";
-import type { PageProps } from "@/types/next";
 
-export default async function FilesPage(props: PageProps) {
+export default async function FilesPage(
+  props: PageProps<"/[ipAddress]/files">,
+) {
   const { ipAddress } = await props.params;
   const { path } = await props.searchParams;
 
@@ -26,7 +27,7 @@ export default async function FilesPage(props: PageProps) {
       <FilesPageContextMenu>
         <UploadDropzone>
           {files.length > 0 ? (
-            <div className="grid auto-rows-min grid-cols-autofill gap-4">
+            <div className="grid-cols-autofill grid auto-rows-min gap-4">
               {files.map((file) => (
                 <FileButton key={file.name} file={file} />
               ))}

@@ -68,7 +68,7 @@ export default function FilesPageContextMenu({
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger className="flex flex-grow">
+        <ContextMenuTrigger className="flex grow">
           {children}
         </ContextMenuTrigger>
 

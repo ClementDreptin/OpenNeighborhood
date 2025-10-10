@@ -181,18 +181,18 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   });
 
   return (
-    <div {...getRootProps()} className="relative flex-grow">
+    <div {...getRootProps()} className="relative grow">
       <input {...getInputProps()} />
 
       {isDragActive && (
-        <div className="absolute inset-0 rounded-md bg-gray-600 bg-opacity-50" />
+        <div className="bg-opacity-50 absolute inset-0 rounded-md bg-gray-600" />
       )}
 
       {children}
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent
-          displayCloseButton={isError}
+          showCloseButton={isError}
           onInteractOutside={!isError ? preventClose : undefined}
           onEscapeKeyDown={!isError ? preventClose : undefined}
           onOpenAutoFocus={preventClose}

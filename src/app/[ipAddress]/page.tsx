@@ -1,9 +1,8 @@
 import DriveButton from "@/components/drive-button";
 import ErrorPage from "@/components/error-page";
 import { getDrives } from "@/lib/consoles";
-import type { PageProps } from "@/types/next";
 
-export default async function DrivesPage(props: PageProps) {
+export default async function DrivesPage(props: PageProps<"/[ipAddress]">) {
   const { ipAddress } = await props.params;
 
   let drives;
@@ -18,7 +17,7 @@ export default async function DrivesPage(props: PageProps) {
   }
 
   return (
-    <div className="grid grid-cols-autofill gap-4">
+    <div className="grid-cols-autofill grid gap-4">
       {drives.map((drive) => (
         <DriveButton key={drive.name} drive={drive} />
       ))}
