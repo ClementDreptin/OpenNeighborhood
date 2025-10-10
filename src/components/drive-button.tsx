@@ -2,7 +2,6 @@
 
 import type { StaticImageData } from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Description } from "@radix-ui/react-dialog";
 import { IconButton } from "./ui/icon-button";
 import driveIcon from "@/../public/drive.svg";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -65,10 +65,12 @@ export default function DriveButton({ drive }: DriveButtonProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{driveNameWithoutColon}</DialogTitle>
-          <Description>Properties of {driveNameWithoutColon}</Description>
+          <DialogDescription>
+            Properties of {driveNameWithoutColon}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-3 gap-x-4 gap-y-2">
+        <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
           <div>Drive:</div>
           <div className="col-span-2">{driveNameWithoutColon}</div>
           <div>Type:</div>
@@ -77,7 +79,7 @@ export default function DriveButton({ drive }: DriveButtonProps) {
 
         <Separator />
 
-        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+        <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm">
           <div>Used space:</div>
           <div className="col-span-2 text-right">
             {drive.totalUsedBytes.toLocaleString()} bytes
@@ -92,7 +94,7 @@ export default function DriveButton({ drive }: DriveButtonProps) {
 
         <Separator />
 
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-4 text-sm">
           <div>Capacity:</div>
           <div className="col-span-2 text-right">
             {drive.totalBytes.toLocaleString()} bytes

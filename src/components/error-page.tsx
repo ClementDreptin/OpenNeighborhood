@@ -14,7 +14,7 @@ export default function ErrorPage({ error }: ErrorPageProps) {
   };
 
   return (
-    <div className="bg-background flex h-full flex-col items-center justify-center text-xl">
+    <div className="bg-card flex h-full flex-col items-center justify-center text-xl">
       <div className="flex items-center gap-2 pb-4">
         <FrownIcon className="text-destructive" />
         <p className="text-destructive-foreground">
