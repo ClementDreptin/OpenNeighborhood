@@ -18,7 +18,10 @@ function IconButton({
   return (
     <Button
       variant="outline"
-      className={cn("h-full w-full justify-around gap-4 text-wrap", className)}
+      className={cn(
+        "h-full w-full justify-around gap-4 whitespace-normal",
+        className,
+      )}
       {...props}
     >
       <Image alt="" priority={priority} src={iconSrc} />
