@@ -60,7 +60,7 @@ export default function AddConsoleButton() {
         {({ isError, isPending }) => (
           <div className="flex gap-2">
             {ipAddressBytes.map((byte, index) => {
-              const id = `ip-address-byte-${index.toString()}`;
+              const id = `ip-address-byte-${index}`;
 
               return (
                 <div key={index} className="grow">
