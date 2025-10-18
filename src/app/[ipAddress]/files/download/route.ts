@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: RouteInfo) {
       : (mime.getType(fileName) ?? "application/octet-stream"),
   });
 
-  let stream;
+  let stream: Readable;
 
   // For directories, we need to return a zip archive
   if (isDirectory) {
@@ -50,6 +50,16 @@ export async function GET(request: NextRequest, { params }: RouteInfo) {
     const result = await downloadFile(ipAddress, filePath);
     stream = result.stream;
     headers.set("Content-Length", result.size.toString());
+
+    // The console won't close the connection when sending the file is done so we need to
+    // manually close the stream once we've sent all the data
+    let bytesSent = 0;
+    stream.on("data", (chunk: Buffer) => {
+      bytesSent += chunk.byteLength;
+      if (bytesSent >= result.size) {
+        stream.destroy();
+      }
+    });
   }
 
   return new Response(Readable.toWeb(stream) as ReadableStream, {
