@@ -293,9 +293,20 @@ export async function downloadDirectory(
       continue;
     }
 
-    const { stream } = await downloadFile(ipAddress, filePath);
+    const { stream, size } = await downloadFile(ipAddress, filePath);
     const entryName = path.win32.relative(baseDirPath, filePath);
     archive.append(stream, { name: entryName });
+
+    // The console won't close the connection when sending the file is done so we need to
+    // manually close the stream once we've sent all the data
+    let bytesSent = 0;
+    stream.on("data", (chunk: Buffer) => {
+      bytesSent += chunk.byteLength;
+      if (bytesSent >= size) {
+        stream.destroy();
+        stream.emit("end");
+      }
+    });
 
     // We have to wait for the current file to finish reading before going to the next
     // one, otherwise we can run into "401- max number of connections exceeded" errors
