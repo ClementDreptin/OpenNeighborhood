@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { useFilesContext } from "@/contexts/FilesContext";
 import {
   deleteFileAction,
   launchXexAction,
@@ -44,6 +45,7 @@ export default function FileButton({ file }: FileButtonProps) {
   const pathname = usePathname();
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
+  const { setClipboardPath } = useFilesContext();
   const fullPath =
     (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
@@ -87,7 +89,7 @@ export default function FileButton({ file }: FileButtonProps) {
   };
 
   const handleCut = () => {
-    localStorage.setItem("clipboardPath", fullPath);
+    setClipboardPath(fullPath);
   };
 
   const handleDelete = () => {

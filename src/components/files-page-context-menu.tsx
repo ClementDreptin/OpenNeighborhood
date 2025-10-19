@@ -9,6 +9,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
+import { useFilesContext } from "@/contexts/FilesContext";
 import { createDirectoryAction, renameFileAction } from "@/lib/actions";
 import { useActionToast, useDirPath, useIpAddress } from "@/lib/hooks";
 import { displayToast, pathBasename } from "@/lib/utils";
@@ -23,15 +24,12 @@ export default function FilesPageContextMenu({
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
   const renameFile = useActionToast(renameFileAction);
+  const { clipboardPath, setClipboardPath } = useFilesContext();
   const [createDirectoryModalOpen, setCreateDirectoryModalOpen] =
     React.useState(false);
-  const clipboardPath =
-    typeof window !== "undefined"
-      ? localStorage.getItem("clipboardPath")
-      : null;
 
   const handlePaste = () => {
-    if (clipboardPath == null || clipboardPath === "") {
+    if (clipboardPath === "") {
       displayToast("There is nothing to paste.", "error");
       return;
     }
@@ -51,7 +49,7 @@ export default function FilesPageContextMenu({
     formData.set("newName", newPath);
 
     renameFile(formData);
-    localStorage.removeItem("clipboardPath");
+    setClipboardPath("");
   };
 
   const handleCreateDirectory = (formData: FormData) => {
@@ -75,7 +73,7 @@ export default function FilesPageContextMenu({
         <ContextMenuContent>
           <ContextMenuItem
             inset
-            disabled={clipboardPath == null}
+            disabled={clipboardPath === ""}
             onClick={handlePaste}
           >
             Paste
