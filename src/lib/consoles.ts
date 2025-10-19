@@ -303,8 +303,8 @@ export async function downloadDirectory(
     stream.on("data", (chunk: Buffer) => {
       bytesSent += chunk.byteLength;
       if (bytesSent >= size) {
-        stream.destroy();
         stream.emit("end");
+        stream.destroy();
       }
     });
 

@@ -57,8 +57,8 @@ export async function GET(request: NextRequest, { params }: RouteInfo) {
     stream.on("data", (chunk: Buffer) => {
       bytesSent += chunk.byteLength;
       if (bytesSent >= result.size) {
-        stream.destroy();
         stream.emit("end");
+        stream.destroy();
       }
     });
   }
