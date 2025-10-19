@@ -11,7 +11,8 @@ interface FilesContextValue {
 
 const FilesContext = React.createContext<FilesContextValue | null>(null);
 
-interface FilesProviderProps extends FilesContextValue {
+interface FilesProviderProps {
+  files: File[];
   children: React.ReactNode;
 }
 
