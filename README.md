@@ -6,7 +6,7 @@
 
 Web-based clone of Xbox 360 Neighborhood.
 
-# Screenshots
+## Screenshots
 
 | Home                          | Root of HDD                           |
 | ----------------------------- | ------------------------------------- |
