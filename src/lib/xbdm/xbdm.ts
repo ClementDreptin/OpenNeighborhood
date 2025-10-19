@@ -35,8 +35,10 @@ export async function sendCommand(
     }
   }
 
-  // Because every command is followed by a "bye" command, that tells the console to
-  // close the connection whenever it's done, the final response needs to be "200- bye"
+  // Tell the console to close our connection
+  await writeCommand(socket, "bye");
+
+  // Read the final "200- bye" response
   const byeHeader = await readHeader(reader, STATUS_CODES.Ok);
   if (byeHeader !== "bye") {
     throw new Error("Expected response to end with 'bye'.");
@@ -73,10 +75,7 @@ export async function connect(ipAddress: string): Promise<Socket> {
 }
 
 export async function writeCommand(socket: Socket, command: string) {
-  // Follow the command by a "bye" command to tell the console to close the connection
-  // whenever it's done
-  const fullCommand = [command, "bye"].join(LINE_DELIMITER);
-  await write(socket, Buffer.from(`${fullCommand}\r\n`));
+  await write(socket, Buffer.from(`${command}${LINE_DELIMITER}`));
 }
 
 export async function readHeader(reader: SocketReader, expect: Status) {
