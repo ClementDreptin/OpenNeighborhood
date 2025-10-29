@@ -31,7 +31,6 @@ import {
   goToDashboardAction,
   rebootAction,
   restartActiveTitleAction,
-  screenshotAction,
   shutdownAction,
   syncTimeAction,
 } from "@/lib/actions";
@@ -52,7 +51,6 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
   const reboot = useActionToast(rebootAction);
   const shutdown = useActionToast(shutdownAction);
   const syncTime = useActionToast(syncTimeAction);
-  const screenshot = useActionToast(screenshotAction);
 
   const handleClick = () => {
     router.push(`/${console.ipAddress}`);
@@ -94,10 +92,14 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
   };
 
   const handleScreenshot = () => {
-    const formData = new FormData();
-    formData.set("ipAddress", console.ipAddress);
+    const url = new URL(
+      `/${console.ipAddress}/screenshot`,
+      window.location.origin,
+    );
 
-    screenshot(formData);
+    const link = document.createElement("a");
+    link.href = url.toString();
+    link.click();
   };
 
   const handleDelete = () => {

@@ -553,19 +553,14 @@ export async function screenshot(ipAddress: string) {
     framebufferSize: xbdm.getIntegerProperty(infoLine, "framebuffersize"),
   };
 
-  console.log(specs);
-
   const framebuffer = await reader.readBytes(specs.framebufferSize);
   const deswizzledFramebuffer = xbdm.deswizzleFramebuffer(framebuffer, specs);
 
-  await fs.writeFile(
-    "screenshot.png",
-    fastPng.encode({
-      width: specs.width,
-      height: specs.height,
-      data: deswizzledFramebuffer,
-    }),
-  );
+  return fastPng.encode({
+    width: specs.width,
+    height: specs.height,
+    data: deswizzledFramebuffer,
+  });
 }
 
 async function getConsolesFromFile() {
