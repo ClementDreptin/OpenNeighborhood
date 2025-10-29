@@ -11,6 +11,7 @@ import {
   reboot,
   renameFile,
   restartActiveTitle,
+  screenshot,
   shutdown,
   syncTime,
 } from "./consoles";
@@ -62,6 +63,8 @@ export const restartActiveTitleAction = genericAction(restartActiveTitle, [
 ]);
 
 export const rebootAction = genericAction(reboot, ["ipAddress"]);
+
+export const screenshotAction = genericAction(screenshot, ["ipAddress"]);
 
 export const shutdownAction = genericAction(shutdown, ["ipAddress"]);
 

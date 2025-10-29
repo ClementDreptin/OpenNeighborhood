@@ -58,7 +58,10 @@ export function getIntegerProperty(line: string, propertyName: string) {
 
   // The value ends when we encounter a space
   let valueEndIndex = line.indexOf(" ", equalIndex + 1);
-  if (valueEndIndex === -1) {
+  const commaIndex = line.indexOf(",", equalIndex + 1);
+  if (valueEndIndex !== -1 && commaIndex === valueEndIndex - 1) {
+    valueEndIndex = commaIndex;
+  } else if (valueEndIndex === -1) {
     // If no spaces were found, the value ends at the end of the line
     valueEndIndex = line.length - 1; // 6
   }
