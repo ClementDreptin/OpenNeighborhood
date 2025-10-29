@@ -1,12 +1,11 @@
 import { uploadFile } from "@/lib/consoles";
 
-interface RouteInfo {
-  params: Promise<{ ipAddress: string }>;
-}
-
-export async function POST(request: Request, { params }: RouteInfo) {
+export async function POST(
+  request: Request,
+  context: RouteContext<"/[ipAddress]/files/upload">,
+) {
   const formData = await request.formData();
-  const { ipAddress } = await params;
+  const { ipAddress } = await context.params;
 
   const dirPath = formData.get("dirPath");
   if (typeof dirPath !== "string" || dirPath === "") {
