@@ -8,9 +8,7 @@ export async function GET(
 ) {
   const { ipAddress } = await context.params;
 
-  console.time("screenshot");
   const pngData = await screenshot(ipAddress);
-  console.timeEnd("screenshot");
 
   const headers = new Headers({
     "Content-Disposition": `attachment; filename=${ipAddress}-image.png`,
