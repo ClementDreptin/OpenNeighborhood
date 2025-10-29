@@ -102,6 +102,10 @@ export function unixTimeToFiletime(unixTime: number) {
   return unixTime * 10_000_000 + 116_444_736_000_000_000;
 }
 
+// Everything related to screenshots is a port of Máté's screenshot implementation in his
+// xbdm-go client, which can be found here:
+// https://codeberg.org/hax360/tools/src/branch/main/xbdm-go/pkg/xbdm/screenshot.go
+
 export interface ScreenshotSpecs {
   pitch: number;
   width: number;
