@@ -528,16 +528,6 @@ export async function getActiveTitle(ipAddress: string) {
   return xbdm.getStringProperty(response, "name");
 }
 
-interface ScreenshotSpecs {
-  pitch: number;
-  width: number;
-  height: number;
-  format: number;
-  offsetX: number;
-  offsetY: number;
-  framebufferSize: number;
-}
-
 export async function screenshot(ipAddress: string) {
   if (!isValidIpv4(ipAddress)) {
     throw new Error("IP address is not valid.");
@@ -553,7 +543,7 @@ export async function screenshot(ipAddress: string) {
 
   const infoLine = await reader.readLine();
 
-  const specs: ScreenshotSpecs = {
+  const specs: xbdm.ScreenshotSpecs = {
     pitch: xbdm.getIntegerProperty(infoLine, "pitch"),
     width: xbdm.getIntegerProperty(infoLine, "width"),
     height: xbdm.getIntegerProperty(infoLine, "height"),
@@ -566,7 +556,7 @@ export async function screenshot(ipAddress: string) {
   console.log(specs);
 
   const framebuffer = await reader.readBytes(specs.framebufferSize);
-  const deswizzledFramebuffer = deswizzleFramebuffer(framebuffer, specs);
+  const deswizzledFramebuffer = xbdm.deswizzleFramebuffer(framebuffer, specs);
 
   await fs.writeFile(
     "screenshot.png",
@@ -594,99 +584,4 @@ async function writeConsolesToFile(consoles: Console[]) {
 
 function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error;
-}
-
-const gpuSwizzleX = 0;
-const gpuSwizzleY = 1;
-const gpuSwizzleZ = 2;
-const gpuSwizzleW = 3;
-const gpuSwizzle0 = 4;
-const gpuSwizzle1 = 5;
-
-const d3dFmtSwizzleXMask = 0x001c0000;
-const d3dFmtSwizzleYMask = 0x00e00000;
-const d3dFmtSwizzleZMask = 0x07000000;
-const d3dFmtSwizzleWMask = 0x38000000;
-
-const xenosTileWH = 32;
-const xenosInTileMask = xenosTileWH - 1;
-const xenosTileMask = ~xenosInTileMask;
-
-function trailingZeros(n: number): number {
-  if (n === 0) {
-    return 32;
-  }
-
-  let count = 0;
-
-  while ((n & 1) === 0) {
-    count++;
-    n >>>= 1;
-  }
-
-  return count;
-}
-
-function extract(value: number, mask: number): number {
-  return (value & mask) >> trailingZeros(mask);
-}
-
-function getSwizzle(format: number): [number, number, number, number] {
-  return [
-    extract(format, d3dFmtSwizzleXMask),
-    extract(format, d3dFmtSwizzleYMask),
-    extract(format, d3dFmtSwizzleZMask),
-    extract(format, d3dFmtSwizzleWMask),
-  ];
-}
-
-function getCh(pixelData: Uint8Array, idx: number, swizzle: number): number {
-  switch (swizzle) {
-    case gpuSwizzleX:
-    case gpuSwizzleY:
-    case gpuSwizzleZ:
-    case gpuSwizzleW:
-      return pixelData[4 * idx + swizzle];
-    case gpuSwizzle0:
-      return 0;
-    case gpuSwizzle1:
-      return 255;
-    default:
-      throw new Error("invalid swizzle");
-  }
-}
-
-function deswizzleFramebuffer(
-  framebuffer: Uint8Array,
-  specs: ScreenshotSpecs,
-): Uint8Array {
-  const [swizzleX, swizzleY, swizzleZ] = getSwizzle(specs.format);
-
-  const deswizzled = new Uint8Array(specs.width * specs.height * 4);
-
-  for (let y = 0; y < specs.height; y++) {
-    const tileYIdx = (y & xenosTileMask) * Math.floor(specs.pitch / 4);
-    const pxYIdx = Math.floor((y & xenosInTileMask) / 2) * 64 + (y % 2) * 4;
-
-    for (let x = 0; x < specs.width; x++) {
-      const tileXIdx = Math.floor(x / xenosTileWH) * xenosTileWH * xenosTileWH;
-      const pxXIdx =
-        (Math.floor((x % xenosTileWH) / 4) * 8 + (x % 4)) ^ ((y & 8) << 2);
-      const idx = tileYIdx + tileXIdx + pxYIdx + pxXIdx;
-
-      const r = getCh(framebuffer, idx, swizzleX);
-      const g = getCh(framebuffer, idx, swizzleY);
-      const b = getCh(framebuffer, idx, swizzleZ);
-      const a = 255;
-
-      const pngIdx = (specs.width * y + x) * 4;
-
-      deswizzled[pngIdx] = r;
-      deswizzled[pngIdx + 1] = g;
-      deswizzled[pngIdx + 2] = b;
-      deswizzled[pngIdx + 3] = a;
-    }
-  }
-
-  return deswizzled;
 }
