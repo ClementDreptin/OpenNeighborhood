@@ -58,15 +58,19 @@ export function getIntegerProperty(line: string, propertyName: string) {
 
   // The value ends when we encounter a space
   let valueEndIndex = line.indexOf(" ", equalIndex + 1);
-  const commaIndex = line.indexOf(",", equalIndex + 1);
-  if (valueEndIndex !== -1 && commaIndex === valueEndIndex - 1) {
-    valueEndIndex = commaIndex;
-  } else if (valueEndIndex === -1) {
+  if (valueEndIndex === -1) {
     // If no spaces were found, the value ends at the end of the line
     valueEndIndex = line.length - 1; // 6
   }
 
-  const valueString = line.substring(equalIndex + 1, valueEndIndex);
+  let valueString = line.substring(equalIndex + 1, valueEndIndex);
+
+  // In some rare cases (like the screenshot specs), there's a comma after the value,
+  // so we remove it before the number parsing
+  if (valueString.endsWith(",")) {
+    valueString = valueString.slice(0, -1);
+  }
+
   const value = Number(valueString);
   if (Number.isNaN(value)) {
     throw new Error(`Couldn't convert ${valueString} into a number.`);
