@@ -5,12 +5,11 @@ import archiver from "archiver";
 import mime from "mime";
 import { downloadDirectory, downloadFile } from "@/lib/consoles";
 
-interface RouteInfo {
-  params: Promise<{ ipAddress: string }>;
-}
-
-export async function GET(request: NextRequest, { params }: RouteInfo) {
-  const { ipAddress } = await params;
+export async function GET(
+  request: NextRequest,
+  context: RouteContext<"/[ipAddress]/files/download">,
+) {
+  const { ipAddress } = await context.params;
   const searchParams = request.nextUrl.searchParams;
   const filePath = searchParams.get("path");
   const isDirectory = searchParams.get("isDirectory") === "true";

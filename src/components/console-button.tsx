@@ -91,6 +91,17 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
     syncTime(formData);
   };
 
+  const handleScreenshot = () => {
+    const url = new URL(
+      `/${console.ipAddress}/screenshot`,
+      window.location.origin,
+    );
+
+    const link = document.createElement("a");
+    link.href = url.toString();
+    link.click();
+  };
+
   const handleDelete = () => {
     const formData = new FormData();
     formData.set("ipAddress", console.ipAddress);
@@ -139,6 +150,12 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
           </ContextMenuItem>
           <ContextMenuItem inset onClick={handleSyncTime}>
             Synchronize Time
+          </ContextMenuItem>
+
+          <Separator />
+
+          <ContextMenuItem inset onClick={handleScreenshot}>
+            Screenshot
           </ContextMenuItem>
 
           <Separator />

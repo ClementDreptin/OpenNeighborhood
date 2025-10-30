@@ -1,9 +1,10 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream } from "node:stream/web";
 import type { Archiver } from "archiver";
+import * as fastPng from "fast-png";
 import { isValidIpv4 } from "./utils";
 import * as xbdm from "./xbdm";
 import "server-only";
@@ -527,8 +528,43 @@ export async function getActiveTitle(ipAddress: string) {
   return xbdm.getStringProperty(response, "name");
 }
 
+export async function screenshot(ipAddress: string) {
+  if (!isValidIpv4(ipAddress)) {
+    throw new Error("IP address is not valid.");
+  }
+
+  const socket = await xbdm.connect(ipAddress);
+  const reader = xbdm.createSocketReader(socket);
+  await xbdm.readHeader(reader, xbdm.STATUS_CODES.Connected);
+
+  await xbdm.writeCommand(socket, "screenshot");
+
+  await xbdm.readHeader(reader, xbdm.STATUS_CODES.BinaryResponseFollows);
+
+  const infoLine = await reader.readLine();
+
+  const specs: xbdm.ScreenshotSpecs = {
+    pitch: xbdm.getIntegerProperty(infoLine, "pitch"),
+    width: xbdm.getIntegerProperty(infoLine, "width"),
+    height: xbdm.getIntegerProperty(infoLine, "height"),
+    format: xbdm.getIntegerProperty(infoLine, "format"),
+    offsetX: xbdm.getIntegerProperty(infoLine, "offsetx"),
+    offsetY: xbdm.getIntegerProperty(infoLine, "offsety"),
+    framebufferSize: xbdm.getIntegerProperty(infoLine, "framebuffersize"),
+  };
+
+  const framebuffer = await reader.readBytes(specs.framebufferSize);
+  const deswizzledFramebuffer = xbdm.deswizzleFramebuffer(framebuffer, specs);
+
+  return fastPng.encode({
+    width: specs.width,
+    height: specs.height,
+    data: deswizzledFramebuffer,
+  });
+}
+
 async function getConsolesFromFile() {
-  const fileContent = await fs.promises.readFile(CONFIG_FILE_PATH, {
+  const fileContent = await fs.readFile(CONFIG_FILE_PATH, {
     encoding: "utf-8",
   });
 
@@ -536,7 +572,7 @@ async function getConsolesFromFile() {
 }
 
 async function writeConsolesToFile(consoles: Console[]) {
-  await fs.promises.writeFile(CONFIG_FILE_PATH, JSON.stringify(consoles), {
+  await fs.writeFile(CONFIG_FILE_PATH, JSON.stringify(consoles), {
     encoding: "utf-8",
   });
 }
