@@ -1,11 +1,9 @@
-import { FlatCompat } from "@eslint/eslintrc";
 import eslint from "@eslint/js";
-import reactCompiler from "eslint-plugin-react-compiler";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
 import { defineConfig } from "eslint/config";
 import neostandard from "neostandard";
 import tseslint from "typescript-eslint";
-
-const compat = new FlatCompat();
 
 export default defineConfig(
   // Base
@@ -15,11 +13,8 @@ export default defineConfig(
   ...neostandard({ noStyle: true }),
 
   // Next
-  ...compat.extends("next/core-web-vitals"),
-  ...compat.extends("next/typescript"),
-  {
-    ignores: [".next/*", "next-env.d.ts"],
-  },
+  ...nextVitals,
+  ...nextTs,
 
   // TypeScript
   ...tseslint.configs.strictTypeChecked,
@@ -31,9 +26,6 @@ export default defineConfig(
       },
     },
   },
-
-  // React Compiler
-  reactCompiler.configs.recommended,
 
   // Custom rules
   {
