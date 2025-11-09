@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useFilesContext } from "@/contexts/FilesContext";
+import { useFilesContext } from "@/contexts/files-context";
 import {
   deleteFileAction,
   launchXexAction,

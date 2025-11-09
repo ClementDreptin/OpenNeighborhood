@@ -3,7 +3,7 @@ import FileButton from "@/components/file-button";
 import FilesContainer from "@/components/files-container";
 import FilesPageContextMenu from "@/components/files-page-context-menu";
 import UploadDropzone from "@/components/upload-dropzone";
-import { FilesProvider } from "@/contexts/FilesContext";
+import { FilesProvider } from "@/contexts/files-context";
 import { getFiles } from "@/lib/consoles";
 
 export default async function FilesPage(

@@ -9,7 +9,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
-import { useFilesContext } from "@/contexts/FilesContext";
+import { useFilesContext } from "@/contexts/files-context";
 import { createDirectoryAction, renameFileAction } from "@/lib/actions";
 import { useActionToast, useDirPath, useIpAddress } from "@/lib/hooks";
 import { displayToast, pathBasename } from "@/lib/utils";

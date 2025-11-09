@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useFilesContext } from "@/contexts/FilesContext";
+import { useFilesContext } from "@/contexts/files-context";
 
 interface FileContainerProps {
   children: React.ReactNode;
