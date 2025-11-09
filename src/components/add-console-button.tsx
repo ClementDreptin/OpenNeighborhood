@@ -41,7 +41,7 @@ export default function AddConsoleButton() {
     <>
       <IconButton
         iconSrc={addConsoleButtonIcon as StaticImageData}
-        onClick={openModal}
+        onDoubleClick={openModal}
       >
         Add Xbox 360
       </IconButton>

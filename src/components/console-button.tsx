@@ -52,7 +52,7 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
   const shutdown = useActionToast(shutdownAction);
   const syncTime = useActionToast(syncTimeAction);
 
-  const handleClick = () => {
+  const handleDoubleClick = () => {
     router.push(`/${console.ipAddress}`);
   };
 
@@ -125,7 +125,7 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
             className="break-all"
             title={console.name}
             iconSrc={consoleIcon as StaticImageData}
-            onClick={handleClick}
+            onDoubleClick={handleDoubleClick}
           >
             {console.name}
           </IconButton>

@@ -143,9 +143,9 @@ export default function FileButton({ file }: FileButtonProps) {
       <ContextMenu>
         <ContextMenuTrigger>
           <IconButton
-            className={isSelected ? "ring-ring/50 ring-[3px]" : undefined}
             title={file.name}
             iconSrc={icon}
+            selected={isSelected}
             onClick={handleClick}
             onDoubleClick={handleDoubleClick}
             onKeyUp={handleKeyUp}
