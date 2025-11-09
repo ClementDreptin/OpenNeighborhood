@@ -45,7 +45,8 @@ export default function FileButton({ file }: FileButtonProps) {
   const pathname = usePathname();
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
-  const { setClipboardPath } = useFilesContext();
+  const { selectedFiles, setSelectedFiles, setClipboardPath } =
+    useFilesContext();
   const fullPath =
     (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
@@ -54,6 +55,7 @@ export default function FileButton({ file }: FileButtonProps) {
   const [renameModalOpen, setRenameModalOpen] = React.useState(false);
   const [newName, setNewName] = React.useState(file.name);
   const launchXex = useActionToast(launchXexAction);
+  const isSelected = selectedFiles.has(file);
 
   const icon = file.isDirectory
     ? (directoryIcon as StaticImageData)
@@ -61,7 +63,12 @@ export default function FileButton({ file }: FileButtonProps) {
       ? (xexIcon as StaticImageData)
       : (fileIcon as StaticImageData);
 
-  const handleClick = () => {
+  const handleClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.stopPropagation();
+    setSelectedFiles(new Set([file]));
+  };
+
+  const handleDoubleClick = () => {
     if (file.isDirectory) {
       router.push(`${pathname}?${new URLSearchParams({ path: fullPath })}`);
     }
@@ -136,9 +143,11 @@ export default function FileButton({ file }: FileButtonProps) {
       <ContextMenu>
         <ContextMenuTrigger>
           <IconButton
+            className={isSelected ? "ring-ring/50 ring-[3px]" : undefined}
             title={file.name}
             iconSrc={icon}
             onClick={handleClick}
+            onDoubleClick={handleDoubleClick}
             onKeyUp={handleKeyUp}
           >
             {file.name}

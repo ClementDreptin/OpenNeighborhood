@@ -5,6 +5,8 @@ import type { File } from "@/lib/consoles";
 
 interface FilesContextValue {
   files: File[];
+  selectedFiles: Set<File>;
+  setSelectedFiles: (selectedFiles: Set<File>) => void;
   clipboardPath: string;
   setClipboardPath: (clipboardPath: string) => void;
 }
@@ -17,6 +19,7 @@ interface FilesProviderProps {
 }
 
 export function FilesProvider({ files, children }: FilesProviderProps) {
+  const [selectedFiles, setSelectedFiles] = React.useState(new Set<File>());
   const [clipboardPath, setClipboardPath] = React.useState(
     typeof window !== "undefined"
       ? (localStorage.getItem("clipboardPath") ?? "")
@@ -27,11 +30,15 @@ export function FilesProvider({ files, children }: FilesProviderProps) {
     localStorage.setItem("clipboardPath", clipboardPath);
   }, [clipboardPath]);
 
-  return (
-    <FilesContext value={{ files, clipboardPath, setClipboardPath }}>
-      {children}
-    </FilesContext>
-  );
+  const value: FilesContextValue = {
+    files,
+    selectedFiles,
+    setSelectedFiles,
+    clipboardPath,
+    setClipboardPath,
+  };
+
+  return <FilesContext value={value}>{children}</FilesContext>;
 }
 
 export function useFilesContext() {
