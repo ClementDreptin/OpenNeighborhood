@@ -51,7 +51,7 @@ export default function FileButton({
   const pathname = usePathname();
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
-  const { setClipboardPath } = useFilesContext();
+  const { selectedFiles, setClipboardPath } = useFilesContext();
   const fullPath =
     (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
@@ -153,7 +153,7 @@ export default function FileButton({
           </IconButton>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          {file.isXex && (
+          {file.isXex && selectedFiles.size < 2 && (
             <ContextMenuItem className="font-bold" inset onClick={handleLaunch}>
               Launch
             </ContextMenuItem>
@@ -170,9 +170,11 @@ export default function FileButton({
 
           <Separator />
 
-          <ContextMenuItem inset onClick={openRenameModal}>
-            Rename
-          </ContextMenuItem>
+          {selectedFiles.size < 2 && (
+            <ContextMenuItem inset onClick={openRenameModal}>
+              Rename
+            </ContextMenuItem>
+          )}
           <ContextMenuItem inset onClick={openConfirmDeleteModal}>
             Delete
           </ContextMenuItem>
