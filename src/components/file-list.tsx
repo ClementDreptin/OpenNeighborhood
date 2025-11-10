@@ -6,16 +6,14 @@ import { useFilesContext } from "@/contexts/files-context";
 import type { File } from "@/lib/consoles";
 
 export default function FileList() {
+  const backgroundRef = React.useRef<HTMLDivElement>(null);
+  const gridRef = React.useRef<HTMLDivElement>(null);
   const { files, selectedFiles, setSelectedFiles } = useFilesContext();
   const [lastSelectedFile, setLastSelectedFile] = React.useState<File | null>(
     null,
   );
 
   const selectFile = (event: React.MouseEvent, file: File) => {
-    // Prevent the click handler from the parent, which unselects all the files,
-    // from tiggering
-    event.stopPropagation();
-
     if (event.ctrlKey) {
       const newSelectedFiles = new Set(selectedFiles);
       newSelectedFiles.add(file);
@@ -46,15 +44,30 @@ export default function FileList() {
     setLastSelectedFile(file);
   };
 
-  const unselectAllFiles = () => {
+  const unselectAllFiles: React.MouseEventHandler = (event) => {
+    const clickedOnBackgroundOrGrid =
+      event.target === backgroundRef.current ||
+      event.target === gridRef.current;
+    if (!clickedOnBackgroundOrGrid) {
+      return;
+    }
+
     setSelectedFiles(new Set());
     setLastSelectedFile(null);
   };
 
   return (
-    <div className="h-full" onClick={unselectAllFiles}>
+    <div
+      ref={backgroundRef}
+      className="h-full"
+      onClick={unselectAllFiles}
+      onContextMenu={unselectAllFiles}
+    >
       {files.length > 0 ? (
-        <div className="grid-cols-autofill grid auto-rows-min gap-4">
+        <div
+          ref={gridRef}
+          className="grid-cols-autofill grid auto-rows-min gap-4"
+        >
           {files.map((file) => (
             <FileButton
               key={file.name}
