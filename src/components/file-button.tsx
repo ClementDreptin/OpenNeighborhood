@@ -38,15 +38,20 @@ import { bytesToSize, unixTimeToString } from "@/lib/utils";
 
 interface FileButtonProps {
   file: File;
+  selected: boolean;
+  onClick: React.MouseEventHandler;
 }
 
-export default function FileButton({ file }: FileButtonProps) {
+export default function FileButton({
+  file,
+  selected,
+  onClick,
+}: FileButtonProps) {
   const router = useRouter();
   const pathname = usePathname();
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
-  const { selectedFiles, setSelectedFiles, setClipboardPath } =
-    useFilesContext();
+  const { setClipboardPath } = useFilesContext();
   const fullPath =
     (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
@@ -55,18 +60,12 @@ export default function FileButton({ file }: FileButtonProps) {
   const [renameModalOpen, setRenameModalOpen] = React.useState(false);
   const [newName, setNewName] = React.useState(file.name);
   const launchXex = useActionToast(launchXexAction);
-  const isSelected = selectedFiles.has(file);
 
   const icon = file.isDirectory
     ? (directoryIcon as StaticImageData)
     : file.isXex
       ? (xexIcon as StaticImageData)
       : (fileIcon as StaticImageData);
-
-  const handleClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
-    event.stopPropagation();
-    setSelectedFiles(new Set([file]));
-  };
 
   const handleDoubleClick = () => {
     if (file.isDirectory) {
@@ -145,8 +144,8 @@ export default function FileButton({ file }: FileButtonProps) {
           <IconButton
             title={file.name}
             iconSrc={icon}
-            selected={isSelected}
-            onClick={handleClick}
+            selected={selected}
+            onClick={onClick}
             onDoubleClick={handleDoubleClick}
             onKeyUp={handleKeyUp}
           >

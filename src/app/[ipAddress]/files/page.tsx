@@ -1,6 +1,5 @@
 import ErrorPage from "@/components/error-page";
-import FileButton from "@/components/file-button";
-import FilesContainer from "@/components/files-container";
+import FileList from "@/components/file-list";
 import FilesPageContextMenu from "@/components/files-page-context-menu";
 import UploadDropzone from "@/components/upload-dropzone";
 import { FilesProvider } from "@/contexts/files-context";
@@ -27,17 +26,7 @@ export default async function FilesPage(
     <FilesProvider files={files}>
       <FilesPageContextMenu>
         <UploadDropzone>
-          <FilesContainer>
-            {files.length > 0 ? (
-              <div className="grid-cols-autofill grid auto-rows-min gap-4">
-                {files.map((file) => (
-                  <FileButton key={file.name} file={file} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-center">This folder is empty.</p>
-            )}
-          </FilesContainer>
+          <FileList />
         </UploadDropzone>
       </FilesPageContextMenu>
     </FilesProvider>
