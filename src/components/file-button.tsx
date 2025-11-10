@@ -98,13 +98,26 @@ export default function FileButton({
     setClipboardPath(fullPath);
   };
 
-  const handleDelete = () => {
-    const formData = new FormData();
-    formData.set("ipAddress", ipAddress);
-    formData.set("filePath", fullPath);
-    formData.set("isDirectory", file.isDirectory.toString());
+  const handleDelete = async () => {
+    const filesToDelete =
+      selectedFiles.size !== 0 ? Array.from(selectedFiles) : [file];
 
-    return deleteFileAction(formData);
+    for (const fileToDelete of filesToDelete) {
+      const fullPath =
+        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
+        fileToDelete.name;
+      const formData = new FormData();
+      formData.set("ipAddress", ipAddress);
+      formData.set("filePath", fullPath);
+      formData.set("isDirectory", fileToDelete.isDirectory.toString());
+
+      const result = await deleteFileAction(formData);
+      if (!result.success) {
+        return result;
+      }
+    }
+
+    return { success: true };
   };
 
   const handleKeyUp: React.KeyboardEventHandler = (event) => {
@@ -192,10 +205,17 @@ export default function FileButton({
         onOpenChange={setConfirmDeleteModalOpen}
         action={handleDelete}
         description={
-          <>
-            Are you sure you want to delete <strong>{file.name}</strong>
-            {file.isDirectory ? " and all of its contents" : ""}?
-          </>
+          selectedFiles.size > 1 ? (
+            <>
+              Are you sure you want to delete these{" "}
+              {selectedFiles.size.toLocaleString()} items?
+            </>
+          ) : (
+            <>
+              Are you sure you want to delete <strong>{file.name}</strong>
+              {file.isDirectory ? " and all of its contents" : ""}?
+            </>
+          )
         }
       />
 
