@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useFilesContext } from "@/contexts/FilesContext";
+import { useFilesContext } from "@/contexts/files-context";
 import {
   deleteFileAction,
   launchXexAction,
@@ -38,14 +38,20 @@ import { bytesToSize, unixTimeToString } from "@/lib/utils";
 
 interface FileButtonProps {
   file: File;
+  selected: boolean;
+  onClick: React.MouseEventHandler;
 }
 
-export default function FileButton({ file }: FileButtonProps) {
+export default function FileButton({
+  file,
+  selected,
+  onClick,
+}: FileButtonProps) {
   const router = useRouter();
   const pathname = usePathname();
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
-  const { setClipboardPath } = useFilesContext();
+  const { selectedFiles, setClipboardPaths } = useFilesContext();
   const fullPath =
     (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
@@ -61,7 +67,7 @@ export default function FileButton({ file }: FileButtonProps) {
       ? (xexIcon as StaticImageData)
       : (fileIcon as StaticImageData);
 
-  const handleClick = () => {
+  const handleDoubleClick = () => {
     if (file.isDirectory) {
       router.push(`${pathname}?${new URLSearchParams({ path: fullPath })}`);
     }
@@ -76,29 +82,63 @@ export default function FileButton({ file }: FileButtonProps) {
   };
 
   const handleDownload = () => {
-    const url = new URL(
-      `${window.location.pathname}/download`,
-      window.location.origin,
-    );
-    url.searchParams.set("path", fullPath);
-    url.searchParams.set("isDirectory", file.isDirectory.toString());
+    const filesToDownload =
+      selectedFiles.size !== 0 ? Array.from(selectedFiles) : [file];
 
-    const link = document.createElement("a");
-    link.href = url.toString();
-    link.click();
+    for (const fileToDownload of filesToDownload) {
+      const fullPath =
+        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
+        fileToDownload.name;
+
+      const url = new URL(
+        `${window.location.pathname}/download`,
+        window.location.origin,
+      );
+      url.searchParams.set("path", fullPath);
+      url.searchParams.set(
+        "isDirectory",
+        fileToDownload.isDirectory.toString(),
+      );
+
+      const link = document.createElement("a");
+      link.href = url.toString();
+      link.download = fileToDownload.name;
+      link.click();
+    }
   };
 
   const handleCut = () => {
-    setClipboardPath(fullPath);
+    const filesToCut =
+      selectedFiles.size !== 0 ? Array.from(selectedFiles) : [file];
+    const paths = filesToCut.map(
+      (file) =>
+        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
+        file.name,
+    );
+    setClipboardPaths(paths);
   };
 
-  const handleDelete = () => {
-    const formData = new FormData();
-    formData.set("ipAddress", ipAddress);
-    formData.set("filePath", fullPath);
-    formData.set("isDirectory", file.isDirectory.toString());
+  const handleDelete = async () => {
+    const filesToDelete =
+      selectedFiles.size !== 0 ? Array.from(selectedFiles) : [file];
 
-    return deleteFileAction(formData);
+    for (const fileToDelete of filesToDelete) {
+      const fullPath =
+        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
+        fileToDelete.name;
+
+      const formData = new FormData();
+      formData.set("ipAddress", ipAddress);
+      formData.set("filePath", fullPath);
+      formData.set("isDirectory", fileToDelete.isDirectory.toString());
+
+      const result = await deleteFileAction(formData);
+      if (!result.success) {
+        return result;
+      }
+    }
+
+    return { success: true };
   };
 
   const handleKeyUp: React.KeyboardEventHandler = (event) => {
@@ -138,14 +178,16 @@ export default function FileButton({ file }: FileButtonProps) {
           <IconButton
             title={file.name}
             iconSrc={icon}
-            onClick={handleClick}
+            selected={selected}
+            onClick={onClick}
+            onDoubleClick={handleDoubleClick}
             onKeyUp={handleKeyUp}
           >
             {file.name}
           </IconButton>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          {file.isXex && (
+          {file.isXex && selectedFiles.size < 2 && (
             <ContextMenuItem className="font-bold" inset onClick={handleLaunch}>
               Launch
             </ContextMenuItem>
@@ -162,18 +204,24 @@ export default function FileButton({ file }: FileButtonProps) {
 
           <Separator />
 
-          <ContextMenuItem inset onClick={openRenameModal}>
-            Rename
-          </ContextMenuItem>
+          {selectedFiles.size < 2 && (
+            <ContextMenuItem inset onClick={openRenameModal}>
+              Rename
+            </ContextMenuItem>
+          )}
           <ContextMenuItem inset onClick={openConfirmDeleteModal}>
             Delete
           </ContextMenuItem>
 
-          <Separator />
+          {selectedFiles.size < 2 && (
+            <>
+              <Separator />
 
-          <ContextMenuItem inset onClick={openPropertiesModal}>
-            Properties
-          </ContextMenuItem>
+              <ContextMenuItem inset onClick={openPropertiesModal}>
+                Properties
+              </ContextMenuItem>
+            </>
+          )}
         </ContextMenuContent>
       </ContextMenu>
 
@@ -182,10 +230,17 @@ export default function FileButton({ file }: FileButtonProps) {
         onOpenChange={setConfirmDeleteModalOpen}
         action={handleDelete}
         description={
-          <>
-            Are you sure you want to delete <strong>{file.name}</strong>
-            {file.isDirectory ? " and all of its contents" : ""}?
-          </>
+          selectedFiles.size > 1 ? (
+            <>
+              Are you sure you want to delete these{" "}
+              {selectedFiles.size.toLocaleString()} items?
+            </>
+          ) : (
+            <>
+              Are you sure you want to delete <strong>{file.name}</strong>
+              {file.isDirectory ? " and all of its contents" : ""}?
+            </>
+          )
         }
       />
 

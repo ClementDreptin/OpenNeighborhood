@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { useFilesContext } from "@/contexts/FilesContext";
+import { useFilesContext } from "@/contexts/files-context";
 import {
   createDirectoryAction,
   deleteFileAction,

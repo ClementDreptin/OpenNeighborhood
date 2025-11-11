@@ -37,7 +37,7 @@ export default function DriveButton({ drive }: DriveButtonProps) {
   const usedSpaceRatio =
     drive.totalBytes !== 0 ? drive.totalUsedBytes / drive.totalBytes : 0;
 
-  const handleClick = () => {
+  const handleDoubleClick = () => {
     router.push(
       `${pathname}/files?${new URLSearchParams({ path: `${drive.name}\\` })}`,
     );
@@ -50,7 +50,7 @@ export default function DriveButton({ drive }: DriveButtonProps) {
           <IconButton
             title={drive.friendlyName}
             iconSrc={driveIcon as StaticImageData}
-            onClick={handleClick}
+            onDoubleClick={handleDoubleClick}
           >
             {`${drive.friendlyName} (${drive.name})`}
           </IconButton>

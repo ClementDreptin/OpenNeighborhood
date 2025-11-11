@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 interface IconButtonProps extends ButtonProps {
   iconSrc: React.ComponentProps<typeof Image>["src"];
   priority?: React.ComponentProps<typeof Image>["priority"];
+  selected?: boolean;
 }
 
 function IconButton({
   className,
   iconSrc,
   priority,
+  selected = false,
   children,
   ...props
 }: IconButtonProps) {
@@ -20,6 +22,7 @@ function IconButton({
       variant="outline"
       className={cn(
         "h-full w-full justify-around gap-4 whitespace-normal",
+        selected ? "ring-ring/50 ring-[3px]" : undefined,
         className,
       )}
       {...props}
