@@ -41,9 +41,7 @@ export default function FilesPageContextMenu({
         return;
       }
 
-      const newPath =
-        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
-        fileName;
+      const newPath = `${parentPath}\\${fileName}`;
 
       const formData = new FormData();
       formData.set("ipAddress", ipAddress);

@@ -11,8 +11,10 @@ export function useIpAddress() {
 
 export function useDirPath() {
   const searchParams = useSearchParams();
+  const path = searchParams.get("path") ?? "";
 
-  return searchParams.get("path") ?? "";
+  // Remove potential trailing separator
+  return path.endsWith("\\") ? path.slice(0, -1) : path;
 }
 
 export function useActionToast(action: FormAction) {

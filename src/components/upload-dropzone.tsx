@@ -79,11 +79,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
     for (const directory of existingDirectories) {
       for (const selectedFile of rootFileNames) {
         if (directory.name === selectedFile) {
-          formData.set(
-            "filePath",
-            (!dirPath.endsWith("\\") ? `${dirPath}\\` : dirPath) +
-              directory.name,
-          );
+          formData.set("filePath", `${dirPath}\\${directory.name}`);
 
           const result = await deleteFileAction(formData);
           if (!result.success) {

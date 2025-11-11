@@ -52,8 +52,7 @@ export default function FileButton({
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
   const { selectedFiles, setClipboardPaths } = useFilesContext();
-  const fullPath =
-    (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
+  const fullPath = `${parentPath}\\${file.name}`;
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] =
     React.useState(false);
@@ -86,9 +85,7 @@ export default function FileButton({
       selectedFiles.size !== 0 ? Array.from(selectedFiles) : [file];
 
     for (const fileToDownload of filesToDownload) {
-      const fullPath =
-        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
-        fileToDownload.name;
+      const fullPath = `${parentPath}\\${fileToDownload.name}`;
 
       const url = new URL(
         `${window.location.pathname}/download`,
@@ -110,11 +107,7 @@ export default function FileButton({
   const handleCut = () => {
     const filesToCut =
       selectedFiles.size !== 0 ? Array.from(selectedFiles) : [file];
-    const paths = filesToCut.map(
-      (file) =>
-        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
-        file.name,
-    );
+    const paths = filesToCut.map((file) => `${parentPath}\\${file.name}`);
     setClipboardPaths(paths);
   };
 
@@ -123,9 +116,7 @@ export default function FileButton({
       selectedFiles.size !== 0 ? Array.from(selectedFiles) : [file];
 
     for (const fileToDelete of filesToDelete) {
-      const fullPath =
-        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
-        fileToDelete.name;
+      const fullPath = `${parentPath}\\${fileToDelete.name}`;
 
       const formData = new FormData();
       formData.set("ipAddress", ipAddress);
@@ -148,8 +139,7 @@ export default function FileButton({
   };
 
   const handleRename = () => {
-    const newPath =
-      (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + newName;
+    const newPath = `${parentPath}\\${newName}`;
 
     const formData = new FormData();
     formData.set("ipAddress", ipAddress);
