@@ -359,7 +359,7 @@ export async function deleteFile(
       await deleteFile(
         ipAddress,
         path.win32.join(filePath, file.name),
-        String(file.isDirectory),
+        file.isDirectory.toString(),
       );
     }
   }
