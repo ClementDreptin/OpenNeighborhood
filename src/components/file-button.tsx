@@ -51,7 +51,7 @@ export default function FileButton({
   const pathname = usePathname();
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
-  const { selectedFiles, setClipboardPath } = useFilesContext();
+  const { selectedFiles, setClipboardPaths } = useFilesContext();
   const fullPath =
     (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + file.name;
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
@@ -108,7 +108,14 @@ export default function FileButton({
   };
 
   const handleCut = () => {
-    setClipboardPath(fullPath);
+    const filesToCut =
+      selectedFiles.size !== 0 ? Array.from(selectedFiles) : [file];
+    const paths = filesToCut.map(
+      (file) =>
+        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
+        file.name,
+    );
+    setClipboardPaths(paths);
   };
 
   const handleDelete = async () => {

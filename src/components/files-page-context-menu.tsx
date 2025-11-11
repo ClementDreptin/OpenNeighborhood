@@ -24,32 +24,36 @@ export default function FilesPageContextMenu({
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
   const renameFile = useActionToast(renameFileAction);
-  const { clipboardPath, setClipboardPath } = useFilesContext();
+  const { clipboardPaths, setClipboardPaths } = useFilesContext();
   const [createDirectoryModalOpen, setCreateDirectoryModalOpen] =
     React.useState(false);
 
   const handlePaste = () => {
-    if (clipboardPath === "") {
+    if (clipboardPaths.length === 0) {
       displayToast("There is nothing to paste.", "error");
       return;
     }
 
-    const fileName = pathBasename(clipboardPath);
-    if (fileName == null) {
-      displayToast("Wrong path format.", "error");
-      return;
+    for (const clipboardPath of clipboardPaths) {
+      const fileName = pathBasename(clipboardPath);
+      if (fileName == null) {
+        displayToast("Wrong path format.", "error");
+        return;
+      }
+
+      const newPath =
+        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
+        fileName;
+
+      const formData = new FormData();
+      formData.set("ipAddress", ipAddress);
+      formData.set("oldName", clipboardPath);
+      formData.set("newName", newPath);
+
+      renameFile(formData);
     }
 
-    const newPath =
-      (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) + fileName;
-
-    const formData = new FormData();
-    formData.set("ipAddress", ipAddress);
-    formData.set("oldName", clipboardPath);
-    formData.set("newName", newPath);
-
-    renameFile(formData);
-    setClipboardPath("");
+    setClipboardPaths([]);
   };
 
   const handleCreateDirectory = (formData: FormData) => {
@@ -73,7 +77,7 @@ export default function FilesPageContextMenu({
         <ContextMenuContent>
           <ContextMenuItem
             inset
-            disabled={clipboardPath === ""}
+            disabled={clipboardPaths.length === 0}
             onClick={handlePaste}
           >
             Paste
