@@ -82,16 +82,29 @@ export default function FileButton({
   };
 
   const handleDownload = () => {
-    const url = new URL(
-      `${window.location.pathname}/download`,
-      window.location.origin,
-    );
-    url.searchParams.set("path", fullPath);
-    url.searchParams.set("isDirectory", file.isDirectory.toString());
+    const filesToDownload =
+      selectedFiles.size !== 0 ? Array.from(selectedFiles) : [file];
 
-    const link = document.createElement("a");
-    link.href = url.toString();
-    link.click();
+    for (const fileToDownload of filesToDownload) {
+      const fullPath =
+        (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
+        fileToDownload.name;
+
+      const url = new URL(
+        `${window.location.pathname}/download`,
+        window.location.origin,
+      );
+      url.searchParams.set("path", fullPath);
+      url.searchParams.set(
+        "isDirectory",
+        fileToDownload.isDirectory.toString(),
+      );
+
+      const link = document.createElement("a");
+      link.href = url.toString();
+      link.download = fileToDownload.name;
+      link.click();
+    }
   };
 
   const handleCut = () => {
@@ -106,6 +119,7 @@ export default function FileButton({
       const fullPath =
         (!parentPath.endsWith("\\") ? `${parentPath}\\` : parentPath) +
         fileToDelete.name;
+
       const formData = new FormData();
       formData.set("ipAddress", ipAddress);
       formData.set("filePath", fullPath);
