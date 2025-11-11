@@ -206,11 +206,15 @@ export default function FileButton({
             Delete
           </ContextMenuItem>
 
-          <Separator />
+          {selectedFiles.size < 2 && (
+            <>
+              <Separator />
 
-          <ContextMenuItem inset onClick={openPropertiesModal}>
-            Properties
-          </ContextMenuItem>
+              <ContextMenuItem inset onClick={openPropertiesModal}>
+                Properties
+              </ContextMenuItem>
+            </>
+          )}
         </ContextMenuContent>
       </ContextMenu>
 
