@@ -359,7 +359,7 @@ function getRootFileNames(files: FileWithPath[]) {
   const rootFileNames = new Set<string>();
 
   for (const file of files) {
-    const parts = getPathParts(file.path ?? "");
+    const parts = getPathParts(file.path ?? "", "/");
     if (parts.length > 0) {
       rootFileNames.add(parts[0]);
     }
