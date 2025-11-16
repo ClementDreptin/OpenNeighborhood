@@ -157,14 +157,14 @@ export default function FileButton({
   };
 
   const handleKeyDown: React.KeyboardEventHandler = (event) => {
-    if (event.ctrlKey) {
-      if (event.key === "x") {
-        handleCut();
-      }
+    if (event.ctrlKey && event.key === "x") {
+      handleCut();
     } else if (event.key === "F2") {
       openRenameModal();
     } else if (event.key === "Delete") {
       openConfirmDeleteModal();
+    } else if (event.altKey && event.key === "Enter") {
+      openPropertiesModal();
     }
   };
 
@@ -219,6 +219,7 @@ export default function FileButton({
 
               <ContextMenuItem inset onClick={openPropertiesModal}>
                 Properties
+                <ContextMenuShortcut>Alt+Enter</ContextMenuShortcut>
               </ContextMenuItem>
             </>
           )}

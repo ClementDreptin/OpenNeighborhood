@@ -67,16 +67,10 @@ export default function FilesPageContextMenu({
   };
 
   const handleKeyDown: React.KeyboardEventHandler = (event) => {
-    if (event.ctrlKey) {
-      if (event.altKey) {
-        if (event.key === "n") {
-          openCreateDirectoryModal();
-        }
-      } else {
-        if (event.key === "v") {
-          handlePaste();
-        }
-      }
+    if (event.ctrlKey && event.altKey && event.key === "n") {
+      openCreateDirectoryModal();
+    } else if (event.ctrlKey && event.key === "v") {
+      handlePaste();
     }
   };
 
