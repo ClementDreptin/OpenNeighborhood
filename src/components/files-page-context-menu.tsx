@@ -6,6 +6,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
@@ -67,8 +68,14 @@ export default function FilesPageContextMenu({
 
   const handleKeyDown: React.KeyboardEventHandler = (event) => {
     if (event.ctrlKey) {
-      if (event.key === "v") {
-        handlePaste();
+      if (event.altKey) {
+        if (event.key === "n") {
+          openCreateDirectoryModal();
+        }
+      } else {
+        if (event.key === "v") {
+          handlePaste();
+        }
       }
     }
   };
@@ -90,6 +97,7 @@ export default function FilesPageContextMenu({
           </ContextMenuItem>
           <ContextMenuItem inset onClick={openCreateDirectoryModal}>
             Create directory
+            <ContextMenuShortcut>Ctrl+Alt+N</ContextMenuShortcut>
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
