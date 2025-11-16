@@ -12,7 +12,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { useFilesContext } from "@/contexts/files-context";
 import { createDirectoryAction, renameFileAction } from "@/lib/actions";
-import { useActionToast, useDirPath, useIpAddress } from "@/lib/hooks";
+import {
+  useActionToast,
+  useDirPath,
+  useIpAddress,
+  useModifierKeyLabel,
+  usePlatform,
+} from "@/lib/hooks";
 import { displayToast, pathBasename } from "@/lib/utils";
 
 interface FilesPageContextMenuProps {
@@ -24,6 +30,8 @@ export default function FilesPageContextMenu({
 }: FilesPageContextMenuProps) {
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
+  const platform = usePlatform();
+  const modifierKeyLabel = useModifierKeyLabel();
   const renameFile = useActionToast(renameFileAction);
   const { clipboardPaths, setClipboardPaths } = useFilesContext();
   const [createDirectoryModalOpen, setCreateDirectoryModalOpen] =
@@ -67,9 +75,12 @@ export default function FilesPageContextMenu({
   };
 
   const handleKeyDown: React.KeyboardEventHandler = (event) => {
-    if (event.ctrlKey && event.altKey && event.key === "n") {
+    const isModifierKeyPressed =
+      platform === "mac" ? event.metaKey : event.ctrlKey;
+
+    if (isModifierKeyPressed && event.altKey && event.key === "n") {
       openCreateDirectoryModal();
-    } else if (event.ctrlKey && event.key === "v") {
+    } else if (isModifierKeyPressed && event.key === "v") {
       handlePaste();
     }
   };
@@ -88,11 +99,11 @@ export default function FilesPageContextMenu({
             onClick={handlePaste}
           >
             Paste
-            <ContextMenuShortcut>Ctrl+V</ContextMenuShortcut>
+            <ContextMenuShortcut>{modifierKeyLabel}+V</ContextMenuShortcut>
           </ContextMenuItem>
           <ContextMenuItem inset onClick={openCreateDirectoryModal}>
             Create directory
-            <ContextMenuShortcut>Ctrl+Alt+N</ContextMenuShortcut>
+            <ContextMenuShortcut>{modifierKeyLabel}+Alt+N</ContextMenuShortcut>
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>

@@ -34,7 +34,13 @@ import {
   renameFileAction,
 } from "@/lib/actions";
 import type { File } from "@/lib/consoles";
-import { useActionToast, useDirPath, useIpAddress } from "@/lib/hooks";
+import {
+  useActionToast,
+  useDirPath,
+  useIpAddress,
+  useModifierKeyLabel,
+  usePlatform,
+} from "@/lib/hooks";
 import { bytesToSize, unixTimeToString } from "@/lib/utils";
 
 interface FileButtonProps {
@@ -52,6 +58,8 @@ export default function FileButton({
   const pathname = usePathname();
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
+  const platform = usePlatform();
+  const modifierKeyLabel = useModifierKeyLabel();
   const { selectedFiles, setClipboardPaths } = useFilesContext();
   const fullPath = `${parentPath}\\${file.name}`;
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
@@ -157,7 +165,10 @@ export default function FileButton({
   };
 
   const handleKeyDown: React.KeyboardEventHandler = (event) => {
-    if (event.ctrlKey && event.key === "x") {
+    const isModifierKeyPressed =
+      platform === "mac" ? event.metaKey : event.ctrlKey;
+
+    if (isModifierKeyPressed && event.key === "x") {
       handleCut();
     } else if (event.key === "F2") {
       openRenameModal();
@@ -197,7 +208,7 @@ export default function FileButton({
 
           <ContextMenuItem inset onClick={handleCut}>
             Cut
-            <ContextMenuShortcut>Ctrl+X</ContextMenuShortcut>
+            <ContextMenuShortcut>{modifierKeyLabel}+X</ContextMenuShortcut>
           </ContextMenuItem>
 
           <Separator />

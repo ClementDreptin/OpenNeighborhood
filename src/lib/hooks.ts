@@ -37,3 +37,27 @@ export function useActionToast(action: FormAction) {
       });
   };
 }
+
+export function usePlatform() {
+  // navigator.platform isn't deprecated in the MDN docs anymore
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  const platform = navigator.platform.toLowerCase();
+
+  if (platform.includes("win")) {
+    return "win";
+  }
+
+  if (platform.includes("mac")) {
+    return "mac";
+  }
+
+  if (platform.includes("linux")) {
+    return "linux";
+  }
+
+  return null;
+}
+
+export function useModifierKeyLabel() {
+  return usePlatform() === "mac" ? "⌘" : "Ctrl";
+}
