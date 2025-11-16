@@ -13,6 +13,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
@@ -33,7 +34,13 @@ import {
   renameFileAction,
 } from "@/lib/actions";
 import type { File } from "@/lib/consoles";
-import { useActionToast, useDirPath, useIpAddress } from "@/lib/hooks";
+import {
+  useActionToast,
+  useDirPath,
+  useIpAddress,
+  useModifierKeyLabel,
+  usePlatform,
+} from "@/lib/hooks";
 import { bytesToSize, unixTimeToString } from "@/lib/utils";
 
 interface FileButtonProps {
@@ -51,6 +58,8 @@ export default function FileButton({
   const pathname = usePathname();
   const ipAddress = useIpAddress();
   const parentPath = useDirPath();
+  const platform = usePlatform();
+  const modifierKeyLabel = useModifierKeyLabel();
   const { selectedFiles, setClipboardPaths } = useFilesContext();
   const fullPath = `${parentPath}\\${file.name}`;
   const [propertiesModalOpen, setPropertiesModalOpen] = React.useState(false);
@@ -132,12 +141,6 @@ export default function FileButton({
     return { success: true };
   };
 
-  const handleKeyUp: React.KeyboardEventHandler = (event) => {
-    if (event.key === "Delete") {
-      openConfirmDeleteModal();
-    }
-  };
-
   const handleRename = () => {
     const newPath = `${parentPath}\\${newName}`;
 
@@ -161,6 +164,21 @@ export default function FileButton({
     setRenameModalOpen(true);
   };
 
+  const handleKeyDown: React.KeyboardEventHandler = (event) => {
+    const isModifierKeyPressed =
+      platform === "mac" ? event.metaKey : event.ctrlKey;
+
+    if (isModifierKeyPressed && event.key === "x") {
+      handleCut();
+    } else if (event.key === "F2") {
+      openRenameModal();
+    } else if (event.key === "Delete") {
+      openConfirmDeleteModal();
+    } else if (event.altKey && event.key === "Enter") {
+      openPropertiesModal();
+    }
+  };
+
   return (
     <>
       <ContextMenu>
@@ -171,7 +189,7 @@ export default function FileButton({
             selected={selected}
             onClick={onClick}
             onDoubleClick={handleDoubleClick}
-            onKeyUp={handleKeyUp}
+            onKeyDown={handleKeyDown}
           >
             {file.name}
           </IconButton>
@@ -190,6 +208,7 @@ export default function FileButton({
 
           <ContextMenuItem inset onClick={handleCut}>
             Cut
+            <ContextMenuShortcut>{modifierKeyLabel}+X</ContextMenuShortcut>
           </ContextMenuItem>
 
           <Separator />
@@ -197,10 +216,12 @@ export default function FileButton({
           {selectedFiles.size < 2 && (
             <ContextMenuItem inset onClick={openRenameModal}>
               Rename
+              <ContextMenuShortcut>F2</ContextMenuShortcut>
             </ContextMenuItem>
           )}
           <ContextMenuItem inset onClick={openConfirmDeleteModal}>
             Delete
+            <ContextMenuShortcut>Suppr</ContextMenuShortcut>
           </ContextMenuItem>
 
           {selectedFiles.size < 2 && (
@@ -209,6 +230,7 @@ export default function FileButton({
 
               <ContextMenuItem inset onClick={openPropertiesModal}>
                 Properties
+                <ContextMenuShortcut>Alt+Enter</ContextMenuShortcut>
               </ContextMenuItem>
             </>
           )}
