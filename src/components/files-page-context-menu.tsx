@@ -65,10 +65,18 @@ export default function FilesPageContextMenu({
     setCreateDirectoryModalOpen(true);
   };
 
+  const handleKeyDown: React.KeyboardEventHandler = (event) => {
+    if (event.ctrlKey) {
+      if (event.key === "v") {
+        handlePaste();
+      }
+    }
+  };
+
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger className="flex grow">
+        <ContextMenuTrigger className="flex grow" onKeyDown={handleKeyDown}>
           {children}
         </ContextMenuTrigger>
 

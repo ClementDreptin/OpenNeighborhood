@@ -132,8 +132,12 @@ export default function FileButton({
     return { success: true };
   };
 
-  const handleKeyUp: React.KeyboardEventHandler = (event) => {
-    if (event.key === "Delete") {
+  const handleKeyDown: React.KeyboardEventHandler = (event) => {
+    if (event.ctrlKey) {
+      if (event.key === "x") {
+        handleCut();
+      }
+    } else if (event.key === "Delete") {
       openConfirmDeleteModal();
     }
   };
@@ -171,7 +175,7 @@ export default function FileButton({
             selected={selected}
             onClick={onClick}
             onDoubleClick={handleDoubleClick}
-            onKeyUp={handleKeyUp}
+            onKeyDown={handleKeyDown}
           >
             {file.name}
           </IconButton>
