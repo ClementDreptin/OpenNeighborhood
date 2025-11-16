@@ -94,6 +94,7 @@ export default function FilesPageContextMenu({
             onClick={handlePaste}
           >
             Paste
+            <ContextMenuShortcut>Ctrl+V</ContextMenuShortcut>
           </ContextMenuItem>
           <ContextMenuItem inset onClick={openCreateDirectoryModal}>
             Create directory

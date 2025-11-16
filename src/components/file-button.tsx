@@ -13,6 +13,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
@@ -194,6 +195,7 @@ export default function FileButton({
 
           <ContextMenuItem inset onClick={handleCut}>
             Cut
+            <ContextMenuShortcut>Ctrl+X</ContextMenuShortcut>
           </ContextMenuItem>
 
           <Separator />
@@ -205,6 +207,7 @@ export default function FileButton({
           )}
           <ContextMenuItem inset onClick={openConfirmDeleteModal}>
             Delete
+            <ContextMenuShortcut>Suppr</ContextMenuShortcut>
           </ContextMenuItem>
 
           {selectedFiles.size < 2 && (
