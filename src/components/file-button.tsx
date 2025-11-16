@@ -133,16 +133,6 @@ export default function FileButton({
     return { success: true };
   };
 
-  const handleKeyDown: React.KeyboardEventHandler = (event) => {
-    if (event.ctrlKey) {
-      if (event.key === "x") {
-        handleCut();
-      }
-    } else if (event.key === "Delete") {
-      openConfirmDeleteModal();
-    }
-  };
-
   const handleRename = () => {
     const newPath = `${parentPath}\\${newName}`;
 
@@ -164,6 +154,18 @@ export default function FileButton({
 
   const openRenameModal = () => {
     setRenameModalOpen(true);
+  };
+
+  const handleKeyDown: React.KeyboardEventHandler = (event) => {
+    if (event.ctrlKey) {
+      if (event.key === "x") {
+        handleCut();
+      }
+    } else if (event.key === "F2") {
+      openRenameModal();
+    } else if (event.key === "Delete") {
+      openConfirmDeleteModal();
+    }
   };
 
   return (
@@ -203,6 +205,7 @@ export default function FileButton({
           {selectedFiles.size < 2 && (
             <ContextMenuItem inset onClick={openRenameModal}>
               Rename
+              <ContextMenuShortcut>F2</ContextMenuShortcut>
             </ContextMenuItem>
           )}
           <ContextMenuItem inset onClick={openConfirmDeleteModal}>
