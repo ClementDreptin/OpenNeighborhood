@@ -11,7 +11,11 @@ import {
 } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
 import { useFilesContext } from "@/contexts/files-context";
-import { createDirectoryAction, renameFileAction } from "@/lib/actions";
+import {
+  createDirectoryAction,
+  renameFileAction,
+  type FormAction,
+} from "@/lib/actions";
 import {
   useActionToast,
   useDirPath,
@@ -33,13 +37,56 @@ export default function FilesPageContextMenu({
   const platform = usePlatform();
   const modifierKeyLabel = useModifierKeyLabel();
   const renameFile = useActionToast(renameFileAction);
-  const { clipboardPaths, setClipboardPaths } = useFilesContext();
+  const { files, clipboardPaths, setClipboardPaths } = useFilesContext();
   const [createDirectoryModalOpen, setCreateDirectoryModalOpen] =
     React.useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
+
+  const containsDuplicateFiles = () => {
+    const clipboardFileNames = clipboardPaths.map((path) => pathBasename(path));
+
+    return files.some((file) =>
+      clipboardFileNames.some(
+        (rootFileName) =>
+          rootFileName?.toLowerCase() === file.name.toLowerCase(),
+      ),
+    );
+  };
+
+  const confirmPaste: FormAction = async () => {
+    for (const clipboardPath of clipboardPaths) {
+      console.log("pasting", clipboardPath);
+      const fileName = pathBasename(clipboardPath);
+      if (fileName == null) {
+        return { success: false, errorMessage: "Wrong path format." };
+      }
+
+      const newPath = `${parentPath}\\${fileName}`;
+
+      const formData = new FormData();
+      formData.set("ipAddress", ipAddress);
+      formData.set("oldName", clipboardPath);
+      formData.set("newName", newPath);
+
+      const result = await renameFileAction(formData);
+      if (!result.success) {
+        return result;
+      }
+    }
+
+    setClipboardPaths([]);
+
+    return { success: true };
+  };
 
   const handlePaste = () => {
     if (clipboardPaths.length === 0) {
       displayToast("There is nothing to paste.", "error");
+      return;
+    }
+
+    if (containsDuplicateFiles()) {
+      setConfirmModalOpen(true);
       return;
     }
 
@@ -131,6 +178,13 @@ export default function FilesPageContextMenu({
           </>
         )}
       </ActionModal>
+
+      <ActionModal
+        open={confirmModalOpen}
+        onOpenChange={setConfirmModalOpen}
+        action={confirmPaste}
+        description="Some files already exist. Would you like to replace them?"
+      />
     </>
   );
 }
