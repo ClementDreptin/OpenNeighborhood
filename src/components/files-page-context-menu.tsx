@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useFilesContext } from "@/contexts/files-context";
 import {
   createDirectoryAction,
+  deleteFileAction,
   renameFileAction,
   type FormAction,
 } from "@/lib/actions";
@@ -55,13 +56,28 @@ export default function FilesPageContextMenu({
 
   const confirmPaste: FormAction = async () => {
     for (const clipboardPath of clipboardPaths) {
-      console.log("pasting", clipboardPath);
       const fileName = pathBasename(clipboardPath);
       if (fileName == null) {
         return { success: false, errorMessage: "Wrong path format." };
       }
 
       const newPath = `${parentPath}\\${fileName}`;
+
+      const fileNameLower = fileName.toLowerCase();
+      const existingFile = files.find(
+        (file) => file.name.toLowerCase() === fileNameLower,
+      );
+      if (existingFile != null) {
+        const formData = new FormData();
+        formData.set("ipAddress", ipAddress);
+        formData.set("filePath", newPath);
+        formData.set("isDirectory", existingFile.isDirectory.toString());
+
+        const result = await deleteFileAction(formData);
+        if (!result.success) {
+          return result;
+        }
+      }
 
       const formData = new FormData();
       formData.set("ipAddress", ipAddress);
