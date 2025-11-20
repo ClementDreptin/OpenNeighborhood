@@ -109,7 +109,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
       formData.set("dirName", directory);
 
       const result = await createDirectoryAction(formData);
-      if (result.errorMessage != null) {
+      if (!result.success) {
         throw new Error(result.errorMessage);
       }
     }
@@ -171,7 +171,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
       <input {...getInputProps()} />
 
       {isDragActive && (
-        <div className="bg-opacity-50 absolute inset-0 rounded-md bg-gray-600" />
+        <div className="absolute inset-0 rounded-md bg-gray-600/50" />
       )}
 
       {children}
