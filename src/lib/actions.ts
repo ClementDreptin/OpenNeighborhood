@@ -79,7 +79,7 @@ function genericAction(
       if (typeof value !== "string" || value === "") {
         return {
           success: false,
-          error: new Error(`${key} needs to be a non-empty string.`),
+          errorMessage: `${key} needs to be a non-empty string.`,
         };
       }
 
