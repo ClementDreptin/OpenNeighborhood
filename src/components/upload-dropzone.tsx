@@ -30,7 +30,7 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const pathname = usePathname();
   const ipAddress = useIpAddress();
   const dirPath = useDirPath();
-  const { files } = useFilesContext();
+  const { files, containsDuplicateFiles } = useFilesContext();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<FileWithPath[]>([]);
@@ -44,24 +44,14 @@ export default function UploadDropzone({ children }: UploadDropzoneProps) {
   const isError = errorMessage !== "";
   const [, startTransition] = React.useTransition();
 
-  const containsDuplicateFiles = (acceptedFiles: FileWithPath[]) => {
-    const rootFileNames = getRootFileNames(acceptedFiles);
-
-    return files.some((file) =>
-      rootFileNames.some(
-        (rootFileName) =>
-          rootFileName.toLowerCase() === file.name.toLowerCase(),
-      ),
-    );
-  };
-
   const onDrop = (acceptedFiles: FileWithPath[]) => {
     setSelectedFiles(acceptedFiles);
     if (acceptedFiles.length === 0) {
       return;
     }
 
-    if (containsDuplicateFiles(acceptedFiles)) {
+    const rootFileNames = getRootFileNames(acceptedFiles);
+    if (containsDuplicateFiles(rootFileNames)) {
       setConfirmModalOpen(true);
     } else {
       void proceedWithUpload(acceptedFiles);

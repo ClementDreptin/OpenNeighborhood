@@ -38,21 +38,11 @@ export default function FilesPageContextMenu({
   const platform = usePlatform();
   const modifierKeyLabel = useModifierKeyLabel();
   const renameFile = useActionToast(renameFileAction);
-  const { files, clipboardPaths, setClipboardPaths } = useFilesContext();
+  const { files, clipboardPaths, setClipboardPaths, containsDuplicateFiles } =
+    useFilesContext();
   const [createDirectoryModalOpen, setCreateDirectoryModalOpen] =
     React.useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
-
-  const containsDuplicateFiles = () => {
-    const clipboardFileNames = clipboardPaths.map((path) => pathBasename(path));
-
-    return files.some((file) =>
-      clipboardFileNames.some(
-        (rootFileName) =>
-          rootFileName?.toLowerCase() === file.name.toLowerCase(),
-      ),
-    );
-  };
 
   const confirmPaste: FormAction = async () => {
     for (const clipboardPath of clipboardPaths) {
@@ -101,7 +91,7 @@ export default function FilesPageContextMenu({
       return;
     }
 
-    if (containsDuplicateFiles()) {
+    if (containsDuplicateFiles(clipboardPaths)) {
       setConfirmModalOpen(true);
       return;
     }

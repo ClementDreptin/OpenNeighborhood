@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import type { File } from "@/lib/consoles";
+import { pathBasename } from "@/lib/utils";
 
 const CLIPBOARD_PATHS_KEY = "clipboardPaths";
 
@@ -11,6 +12,7 @@ interface FilesContextValue {
   setSelectedFiles: (selectedFiles: Set<File>) => void;
   clipboardPaths: string[];
   setClipboardPaths: (clipboardPaths: string[]) => void;
+  containsDuplicateFiles: (paths: string[] | File[]) => boolean;
 }
 
 const FilesContext = React.createContext<FilesContextValue | null>(null);
@@ -26,6 +28,16 @@ export function FilesProvider({ files, children }: FilesProviderProps) {
     getClipboardPathsFromLocalStorage(),
   );
 
+  const containsDuplicateFiles = (paths: string[] | File[]) => {
+    const names = paths.map((path) =>
+      typeof path === "string" ? pathBasename(path) : path.name,
+    );
+
+    return files.some((file) =>
+      names.some((name) => name?.toLowerCase() === file.name.toLowerCase()),
+    );
+  };
+
   React.useEffect(() => {
     localStorage.setItem(CLIPBOARD_PATHS_KEY, JSON.stringify(clipboardPaths));
   }, [clipboardPaths]);
@@ -36,6 +48,7 @@ export function FilesProvider({ files, children }: FilesProviderProps) {
     setSelectedFiles,
     clipboardPaths,
     setClipboardPaths,
+    containsDuplicateFiles,
   };
 
   return <FilesContext value={value}>{children}</FilesContext>;
