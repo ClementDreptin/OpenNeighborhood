@@ -72,7 +72,6 @@ export default function FileList() {
             <FileButton
               key={file.name}
               file={file}
-              selected={selectedFiles.has(file)}
               onClick={(event) => {
                 selectFile(event, file);
               }}
