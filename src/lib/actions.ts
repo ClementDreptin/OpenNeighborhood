@@ -22,7 +22,7 @@ export type FormAction = (
 
 export const createConsoleAction = genericAction(
   createConsole,
-  ["ipAddress"],
+  ["nameOrIpAddress"],
   "/",
 );
 

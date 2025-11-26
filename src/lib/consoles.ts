@@ -61,9 +61,15 @@ export async function getConsoleType(ipAddress: string) {
   return await xbdm.sendCommand(ipAddress, xbdm.STATUS_CODES.Ok, "consoletype");
 }
 
-export async function createConsole(ipAddress: string) {
-  if (!isValidIpv4(ipAddress)) {
-    throw new Error("IP address is not valid.");
+export async function createConsole(nameOrIpAddress: string) {
+  let ipAddress = "";
+
+  const needToDiscoverConsoleByConsole = !isValidIpv4(nameOrIpAddress);
+  if (needToDiscoverConsoleByConsole) {
+    const discoveredConsole = await discoverConsoleByName(nameOrIpAddress);
+    ipAddress = discoveredConsole.ipAddress;
+  } else {
+    ipAddress = nameOrIpAddress;
   }
 
   let consoles: Console[];
@@ -561,6 +567,39 @@ export async function screenshot(ipAddress: string) {
     height: specs.height,
     data: deswizzledFramebuffer,
   });
+}
+
+async function discoverConsoleByName(consoleName: string) {
+  // https://xboxdevwiki.net/Xbox_Debug_Monitor#Name_Answering_Protocol (Forward Lookup)
+  const type1 = Buffer.concat([
+    Buffer.from([0x01]),
+    Buffer.from([consoleName.length]),
+    Buffer.from(consoleName, "ascii"),
+  ]);
+
+  let response;
+  try {
+    response = await xbdm.broadcastUdpPacket(type1);
+  } catch (error) {
+    if (error instanceof Error && error.message === "Timeout") {
+      throw new Error(`Couldn't find console "${consoleName}".`);
+    }
+    throw error;
+  }
+
+  const receivedConsoleName = response.datagram.subarray(2).toString("ascii");
+
+  // This should never happen but just in case
+  if (receivedConsoleName !== consoleName) {
+    throw new Error(
+      `Incorrect console name, expected "${consoleName}" but received "${receivedConsoleName}".`,
+    );
+  }
+
+  return {
+    ipAddress: response.remoteInfo.address,
+    name: receivedConsoleName,
+  };
 }
 
 async function getConsolesFromFile() {
