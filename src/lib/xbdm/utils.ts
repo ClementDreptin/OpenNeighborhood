@@ -1,3 +1,5 @@
+import dgram from "node:dgram";
+
 export function getStringProperty(line: string, propertyName: string) {
   // All string properties are like this: NAME="VALUE"
 
@@ -262,4 +264,65 @@ function getCh(pixelData: Uint8Array, idx: number, swizzle: number) {
     default:
       throw new Error("invalid swizzle");
   }
+}
+
+export interface UdpPacket {
+  datagram: Buffer;
+  remoteInfo: dgram.RemoteInfo;
+}
+
+export async function broadcastUdpPacket(
+  packet: Buffer,
+  maxRetries = 3,
+  retryDelay = 500,
+) {
+  function broadcast(): Promise<UdpPacket> {
+    return new Promise((resolve, reject) => {
+      const udp = dgram.createSocket("udp4");
+
+      udp.bind(() => {
+        udp.setBroadcast(true);
+      });
+
+      // You can't set a timeout socket option on a UDP socket so we implement
+      // the timeout logic manually
+      const timeoutId = setTimeout(() => {
+        udp.close();
+        reject(new Error("Timeout"));
+      }, retryDelay);
+
+      udp.send(packet, 730, "255.255.255.255", (error) => {
+        if (error != null) {
+          udp.close();
+          clearTimeout(timeoutId);
+          reject(error);
+        }
+      });
+
+      // TODO: add support for multiple messages to be received (needed when multiple consoles respond)
+      udp.once("message", (datagram, remoteInfo) => {
+        udp.close();
+        clearTimeout(timeoutId);
+        resolve({ remoteInfo, datagram });
+      });
+
+      udp.once("error", (error) => {
+        udp.close();
+        clearTimeout(timeoutId);
+        reject(error);
+      });
+    });
+  }
+
+  // UDP is unreliable so we retry maxRetries times before erroring
+  let lastError;
+  for (let attempts = 0; attempts < maxRetries; attempts++) {
+    try {
+      return await broadcast();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError;
 }
