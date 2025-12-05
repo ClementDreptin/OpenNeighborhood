@@ -45,10 +45,10 @@ import { bytesToSize, unixTimeToString } from "@/lib/utils";
 
 interface FileButtonProps {
   file: File;
-  onClick: React.MouseEventHandler;
+  onMouseDown: React.MouseEventHandler;
 }
 
-export default function FileButton({ file, onClick }: FileButtonProps) {
+export default function FileButton({ file, onMouseDown }: FileButtonProps) {
   const router = useRouter();
   const pathname = usePathname();
   const ipAddress = useIpAddress();
@@ -182,7 +182,7 @@ export default function FileButton({ file, onClick }: FileButtonProps) {
             title={file.name}
             iconSrc={icon}
             selected={selectedFiles.has(file)}
-            onClick={onClick}
+            onMouseDown={onMouseDown}
             onDoubleClick={handleDoubleClick}
             onKeyDown={handleKeyDown}
           >

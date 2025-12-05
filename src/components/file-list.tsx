@@ -14,6 +14,11 @@ export default function FileList() {
   );
 
   const selectFile = (event: React.MouseEvent, file: File) => {
+    // Don't select the file on right click
+    if (event.button === 2) {
+      return;
+    }
+
     if (event.ctrlKey) {
       const newSelectedFiles = new Set(selectedFiles);
       newSelectedFiles.add(file);
@@ -72,7 +77,7 @@ export default function FileList() {
             <FileButton
               key={file.name}
               file={file}
-              onClick={(event) => {
+              onMouseDown={(event) => {
                 selectFile(event, file);
               }}
             />
