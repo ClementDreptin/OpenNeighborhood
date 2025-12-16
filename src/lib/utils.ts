@@ -1,4 +1,5 @@
 import type * as React from "react";
+import path from "node:path";
 import { clsx, type ClassValue } from "clsx";
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
@@ -79,4 +80,34 @@ export function pathBasename(path: string, delimiter: "/" | "\\" = "\\") {
   // Equivalent to `path.win32.basename()`, or `path.basename()` if delimiter is overridden,
   // to use in client components
   return getPathParts(path, delimiter).pop();
+}
+
+export function pathJoin(...parts: string[]) {
+  // Custom implementation of path.win32.join to support multiletter drive names
+  // This became needed after node v22.13.1 which stopped supporting multiletter
+  // drive names to fix a CVE (https://github.com/nodejs/node/commit/99f217369f)
+
+  const [firstPart, ...remainingParts] = parts;
+  const multiLetterDriveNameRegex = /^[a-zA-Z]{2,}:/;
+
+  // If the first path is a multiletter drive name, extract the drive name
+  // path the rest of the path using the built-in path.win32.join function,
+  // and then prepend the drive name manually with a string concatenation
+  if (parts.length > 0 && multiLetterDriveNameRegex.test(firstPart)) {
+    const colonIndex = firstPart.indexOf(":");
+    const drive = firstPart.slice(0, colonIndex);
+    const restAfterDriveName = firstPart.slice(colonIndex + 1);
+
+    // Always prepend the rest of the path with a separator so that we know
+    // for sure it's always present after the drive name
+    const restOfPath = path.win32.join(
+      "\\",
+      restAfterDriveName,
+      ...remainingParts,
+    );
+
+    return `${drive}:${restOfPath}`;
+  }
+
+  return path.win32.join(...parts);
 }

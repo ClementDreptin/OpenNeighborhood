@@ -5,7 +5,7 @@ import { pipeline } from "node:stream/promises";
 import type { ReadableStream } from "node:stream/web";
 import type { Archiver } from "archiver";
 import * as fastPng from "fast-png";
-import { isValidIpv4 } from "./utils";
+import { isValidIpv4, pathJoin } from "./utils";
 import * as xbdm from "./xbdm";
 import "server-only";
 
@@ -293,7 +293,7 @@ export async function downloadDirectory(
   const files = await getFiles(ipAddress, dirPath);
 
   for (const file of files) {
-    const filePath = path.win32.join(dirPath, file.name);
+    const filePath = pathJoin(dirPath, file.name);
 
     if (file.isDirectory) {
       await downloadDirectory(ipAddress, filePath, archive, baseDirPath);
@@ -338,7 +338,7 @@ export async function uploadFile(
   const reader = xbdm.createSocketReader(socket);
   await xbdm.readHeader(reader, xbdm.STATUS_CODES.Connected);
 
-  const filePath = path.win32.join(dirPath, file.name);
+  const filePath = pathJoin(dirPath, file.name);
   const command = `sendfile name="${filePath}" length=0x${file.size.toString(16)}`;
   await xbdm.writeCommand(socket, command);
   await xbdm.readHeader(reader, xbdm.STATUS_CODES.SendBinaryData);
@@ -364,7 +364,7 @@ export async function deleteFile(
     for (const file of files) {
       await deleteFile(
         ipAddress,
-        path.win32.join(filePath, file.name),
+        pathJoin(filePath, file.name),
         file.isDirectory.toString(),
       );
     }
@@ -402,7 +402,7 @@ export async function createDirectory(
     throw new Error("IP address is not valid.");
   }
 
-  const fullPath = path.win32.join(parentPath, dirName);
+  const fullPath = pathJoin(parentPath, dirName);
 
   try {
     await xbdm.sendCommand(
