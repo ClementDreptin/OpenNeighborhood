@@ -204,7 +204,9 @@ export default function ConsoleButton({ console }: ConsoleButtonProps) {
 
           <div className="grid grid-cols-4 gap-x-4 gap-y-2 text-sm">
             <div>Active title:</div>
-            <div className="col-span-3 break-words">{console.activeTitle}</div>
+            <div className="col-span-3 wrap-break-word">
+              {console.activeTitle}
+            </div>
           </div>
 
           <DialogFooter>
